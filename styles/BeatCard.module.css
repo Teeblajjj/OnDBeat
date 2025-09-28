@@ -1,0 +1,35 @@
+.card {
+  border: 1px solid #eee;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.art {
+  height: 140px;
+  background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.producer {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.price {
+  font-weight: 600;
+}
+
+
