@@ -4,11 +4,17 @@ import { HelpCircleIcon, BookOpen, Video, MessageCircle, Mail, Phone } from "luc
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import PlayerBar from "../components/PlayerBar";
+import { useAuth } from "../context/AuthContext";
+import CartModal from "../components/CartModal";
 
 export default function Help() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("faq");
+  const { openAuthModal } = useAuth();
+  const [cartItems, setCartItems] = useState(0);
+  const [cartModalOpen, setCartModalOpen] = useState(false);
+  const [cartContents, setCartContents] = useState<any[]>([]);
 
   const faqItems = [
     {
@@ -69,6 +75,15 @@ export default function Help() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
+      <CartModal 
+        isOpen={cartModalOpen} 
+        onClose={() => setCartModalOpen(false)}
+        cartItems={cartContents}
+        onRemoveItem={() => {}}
+        onUpdateQuantity={() => {}}
+        onCheckout={() => {}}
+      />
+
       <div className="min-h-screen bg-black text-white">
         <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
         
@@ -77,6 +92,8 @@ export default function Help() {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onCartClick={() => setCartModalOpen(true)}
+            cartItems={cartItems}
           />
 
           <main className="p-6">

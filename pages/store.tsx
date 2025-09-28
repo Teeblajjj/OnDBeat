@@ -5,9 +5,9 @@ import { BsBagPlus } from "react-icons/bs";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import PlayerBar from "../components/PlayerBar";
-import AuthModal from "../components/AuthModal";
 import BeatModal from "../components/BeatModal";
 import CartModal from "../components/CartModal";
+import { useAuth } from "../context/AuthContext";
 
 interface Beat {
   id: number;
@@ -44,8 +44,7 @@ export default function Store() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBeat, setSelectedBeat] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+  const { openAuthModal } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [selectedLicense, setSelectedLicense] = useState<number | null>(null);
   const [cartItems, setCartItems] = useState<number>(0);
@@ -277,24 +276,10 @@ export default function Store() {
     setSelectedLicense(null);
   };
 
-  const openAuthModal = (mode: 'signin' | 'signup') => {
-    setAuthMode(mode);
-    setAuthModalOpen(true);
-    setEmail('');
-    setPassword('');
-    setUsername('');
-    setConfirmPassword('');
-    setShowPassword(false);
-  };
-
-  const closeAuthModal = () => {
-    setAuthModalOpen(false);
-  };
-
   const handleAuthSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Auth submitted:', { authMode, email, password, username });
-    closeAuthModal();
+    console.log('Auth submitted:');
+    openAuthModal('signin');
   };
 
   const toggleLicenseSelection = (index: number) => {
@@ -312,6 +297,7 @@ export default function Store() {
         beat: selectedBeat,
         license: selectedBeat.licenses[selectedLicense],
         licenseIndex: selectedLicense,
+        quantity: 1,
       };
       setCartContents((prev) => [...prev, newCartItem]);
       setCartItems((prev) => prev + 1);
@@ -330,6 +316,7 @@ export default function Store() {
         beat: selectedBeat,
         license: selectedBeat.licenses[selectedLicense],
         licenseIndex: selectedLicense,
+        quantity: 1,
       };
       setCartContents((prev) => [...prev, newCartItem]);
       setCartItems((prev) => prev + 1);
@@ -338,9 +325,19 @@ export default function Store() {
     }
   };
 
-  const removeFromCart = (cartItemId: number) => {
-    setCartContents((prev) => prev.filter((item) => item.id !== cartItemId));
+  const removeFromCart = (beatId: number, licenseIndex: number) => {
+    setCartContents((prev) => prev.filter((item) => !(item.beat.id === beatId && item.licenseIndex === licenseIndex)));
     setCartItems((prev) => Math.max(0, prev - 1));
+  };
+
+  const updateQuantity = (beatId: number, licenseIndex: number, quantity: number) => {
+    setCartContents((prev) =>
+      prev.map((item) =>
+        item.beat.id === beatId && item.licenseIndex === licenseIndex
+          ? { ...item, quantity: Math.max(1, quantity) }
+          : item
+      )
+    );
   };
 
   const filteredItems = selectedCategory === "all" 
@@ -366,6 +363,8 @@ export default function Store() {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onCartClick={() => setCartModalOpen(true)}
+            cartItems={cartItems}
           />
 
           <main className="p-6">
@@ -491,7 +490,7 @@ export default function Store() {
                         <p className="text-gray-400 text-sm mb-4">{item.description}</p>
                         <div className="flex items-center justify-between">
                           <span className="text-xl font-bold text-green-400">${item.price}</span>
-                          <button className="bg-green-500 hover:bg-green-600 text-black px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2">
+                          <button onClick={() => openLicenseModal(item)} className="bg-green-500 hover:bg-green-600 text-black px-4 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2">
                             <BsBagPlus className="w-4 h-4" />
                             Add to Cart
                           </button>
@@ -530,7 +529,7 @@ export default function Store() {
                             </div>
                             <div className="text-right">
                               <div className="text-2xl font-bold text-green-400 mb-4">${item.price}</div>
-                              <button className="bg-green-500 hover:bg-green-600 text-black px-6 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2">
+                              <button onClick={() => openLicenseModal(item)} className="bg-green-500 hover:bg-green-600 text-black px-6 py-2 rounded-lg font-semibold transition-colors flex items-center gap-2">
                                 <BsBagPlus className="w-4 h-4" />
                                 Add to Cart
                               </button>
@@ -571,24 +570,6 @@ export default function Store() {
       </div>
 
       {/* Modals */}
-      <AuthModal 
-        isOpen={authModalOpen}
-        onClose={closeAuthModal}
-        mode={authMode}
-        onModeChange={setAuthMode}
-        onSubmit={handleAuthSubmit}
-        email={email}
-        setEmail={setEmail}
-        password={password}
-        setPassword={setPassword}
-        username={username}
-        setUsername={setUsername}
-        confirmPassword={confirmPassword}
-        setConfirmPassword={setConfirmPassword}
-        showPassword={showPassword}
-        setShowPassword={setShowPassword}
-      />
-
       <BeatModal
         isOpen={isModalOpen}
         onClose={closeLicenseModal}
@@ -604,6 +585,7 @@ export default function Store() {
         onClose={() => setCartModalOpen(false)}
         cartItems={cartContents}
         onRemoveItem={removeFromCart}
+        onUpdateQuantity={updateQuantity}
         onCheckout={() => window.location.href = '/checkout'}
       />
     </>

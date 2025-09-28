@@ -4,12 +4,18 @@ import { Rocket, Target, DollarSign, TrendingUp, Users, Calendar, CheckCircle } 
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import PlayerBar from "../components/PlayerBar";
+import { useAuth } from "../context/AuthContext";
+import CartModal from "../components/CartModal";
 
 export default function Promote() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBeat, setSelectedBeat] = useState(null);
   const [promotionType, setPromotionType] = useState("featured");
+  const { openAuthModal } = useAuth();
+  const [cartItems, setCartItems] = useState(0);
+  const [cartModalOpen, setCartModalOpen] = useState(false);
+  const [cartContents, setCartContents] = useState<any[]>([]);
 
   const promotionOptions = [
     {
@@ -87,6 +93,15 @@ export default function Promote() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
+      <CartModal 
+        isOpen={cartModalOpen} 
+        onClose={() => setCartModalOpen(false)}
+        cartItems={cartContents}
+        onRemoveItem={() => {}}
+        onUpdateQuantity={() => {}}
+        onCheckout={() => {}}
+      />
+
       <div className="min-h-screen bg-black text-white">
         <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
         
@@ -95,6 +110,8 @@ export default function Promote() {
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
             onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onCartClick={() => setCartModalOpen(true)}
+            cartItems={cartItems}
           />
 
           <main className="p-6">

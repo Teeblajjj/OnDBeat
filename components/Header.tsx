@@ -1,11 +1,11 @@
-import { Search, Menu, ShoppingCart } from "lucide-react";
+
+import { Search, Menu, ShoppingCart, User } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
 
 interface HeaderProps {
   onToggleMobileMenu: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
-  onSignIn: () => void;
-  onSignUp: () => void;
   onCartClick: () => void;
   cartItems: number;
 }
@@ -14,11 +14,11 @@ export default function Header({
   onToggleMobileMenu, 
   searchQuery, 
   onSearchChange, 
-  onSignIn, 
-  onSignUp, 
   onCartClick,
   cartItems 
 }: HeaderProps) {
+  const { openAuthModal } = useAuth();
+
   return (
     <header className="sticky top-0 z-40 bg-neutral-900 flex items-center justify-between px-4 md:px-8 py-3 border-b border-neutral-800">
       <div className="flex items-center space-x-4">
@@ -41,18 +41,9 @@ export default function Header({
       
       <div className="flex items-center space-x-4">
         <button 
-          onClick={onSignIn}
-          className="px-3 py-1 rounded-md border border-green-500 hover:bg-green-500 hover:text-black text-sm transition-colors"
-        >
-          Sign In
-        </button>
-        <button 
-          onClick={onSignUp}
+          onClick={() => openAuthModal('signup')}
           className="px-3 py-1 rounded-md bg-green-500 text-black hover:bg-green-400 text-sm transition-colors"
         >
-          Sign Up
-        </button>
-        <button className="px-3 py-1 rounded-md bg-green-500 text-black hover:bg-green-400 hidden sm:block text-sm transition-colors">
           Start Selling
         </button>
         <div className="relative">
@@ -66,6 +57,12 @@ export default function Header({
             </span>
           )}
         </div>
+        <button 
+          onClick={() => openAuthModal('signin')}
+          className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center hover:bg-gray-500"
+        >
+          <User className="w-4 h-4 text-white" />
+        </button>
       </div>
     </header>
   );
