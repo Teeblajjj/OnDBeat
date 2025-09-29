@@ -1,9 +1,9 @@
 import Head from 'next/head'
 import { useState } from 'react'
-import Sidebar from '../components/Sidebar'
-import Header from '../components/Header'
-import PlayerBar from '../components/PlayerBar'
-import CartModal from '../components/CartModal'
+import Sidebar from '../../components/Sidebar'
+import Header from '../../components/Header'
+import PlayerBar from '../../components/PlayerBar'
+import CartModal from '../../components/CartModal'
 import { UploadCloud, Music, FileText, Tag, DollarSign, CheckCircle } from 'lucide-react'
 
 // --- Page Component ---

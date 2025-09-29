@@ -2,14 +2,18 @@ import { X, Trash2, ShoppingCart, Plus, Minus } from 'lucide-react';
 import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 
-// Dummy data, replace with your actual data structure
 interface CartItem {
-  id: number;
-  name: string;
-  creator: string;
-  price: number;
-  image: string;
-  license?: string;
+  beat: {
+    id: number;
+    title: string;
+    producer: string;
+    cover: string;
+    licenses: {
+        name: string;
+        price: number;
+    }[];
+  };
+  licenseIndex: number;
   quantity: number;
 }
 
@@ -23,7 +27,7 @@ interface CartModalProps {
 }
 
 export default function CartModal({ isOpen, onClose, cartItems, onRemoveItem, onUpdateQuantity, onCheckout }: CartModalProps) {
-    const subtotal = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    const subtotal = cartItems.reduce((acc, item) => acc + item.beat.licenses[item.licenseIndex].price * item.quantity, 0);
 
     return (
         <Transition.Root show={isOpen} as={Fragment}>
@@ -75,28 +79,27 @@ export default function CartModal({ isOpen, onClose, cartItems, onRemoveItem, on
                                                     </div>
                                                 ) : (
                                                     <ul role="list" className="-my-6 divide-y divide-neutral-800">
-                                                        {cartItems.map((item) => (
-                                                            <li key={item.id} className="flex py-6">
+                                                        {cartItems.map((item, index) => (
+                                                            <li key={index} className="flex py-6">
                                                                 <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md">
-                                                                    <img src={item.image} alt={item.name} className="h-full w-full object-cover object-center" />
+                                                                    <img src={item.beat.cover} alt={item.beat.title} className="h-full w-full object-cover object-center" />
                                                                 </div>
                                                                 <div className="ml-4 flex flex-1 flex-col">
                                                                     <div>
                                                                         <div className="flex justify-between text-base font-medium text-white">
-                                                                            <h3>{item.name}</h3>
-                                                                            <p className="ml-4">${item.price.toFixed(2)}</p>
+                                                                            <h3>{item.beat.title}</h3>
+                                                                            <p className="ml-4">${item.beat.licenses[item.licenseIndex].price.toFixed(2)}</p>
                                                                         </div>
-                                                                        <p className="mt-1 text-sm text-neutral-400">by {item.creator}</p>
-                                                                        {item.license && <p className="mt-1 text-sm text-green-400">{item.license} License</p>}
-                                                                    </div>
+                                                                        <p className="mt-1 text-sm text-neutral-400">by {item.beat.producer}</p>
+                                                                        <p className="mt-1 text-sm text-green-400">{item.beat.licenses[item.licenseIndex].name} License</p>                                                                    </div>
                                                                     <div className="flex flex-1 items-end justify-between text-sm">
                                                                          <div className="flex items-center gap-2 border border-neutral-700 rounded-full px-2 py-0.5">
-                                                                            <button onClick={() => onUpdateQuantity(item.id, item.quantity - 1)} disabled={item.quantity <= 1}><Minus size={16} className="text-neutral-400 hover:text-white"/></button>
+                                                                            <button onClick={() => onUpdateQuantity(item.beat.id, item.quantity - 1)} disabled={item.quantity <= 1}><Minus size={16} className="text-neutral-400 hover:text-white"/></button>
                                                                             <p className="text-white font-semibold w-4 text-center">{item.quantity}</p>
-                                                                            <button onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}><Plus size={16} className="text-neutral-400 hover:text-white"/></button>
+                                                                            <button onClick={() => onUpdateQuantity(item.beat.id, item.quantity + 1)}><Plus size={16} className="text-neutral-400 hover:text-white"/></button>
                                                                          </div>
                                                                         <div className="flex">
-                                                                            <button type="button" onClick={() => onRemoveItem(item.id)} className="font-medium text-red-500 hover:text-red-400 flex items-center gap-1">
+                                                                            <button type="button" onClick={() => onRemoveItem(item.beat.id)} className="font-medium text-red-500 hover:text-red-400 flex items-center gap-1">
                                                                                 <Trash2 size={16} /> Remove
                                                                             </button>
                                                                         </div>

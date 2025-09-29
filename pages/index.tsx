@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
-import { Play, Pause, Heart, ShoppingCart, Music, Check, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { Play, Pause, Heart, ShoppingCart, Music, Check, Download, ChevronLeft, ChevronRight, Star, Mic2, Video, Copy, Signal, Users, RadioTower } from "lucide-react";
 import { BsBagPlus } from "react-icons/bs";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
@@ -10,6 +10,13 @@ import CartModal from "../components/CartModal";
 import { useAuth } from "../context/AuthContext";
 
 // --- Interfaces ---
+interface License {
+  name: string;
+  price: number;
+  files: string;
+  recommended?: boolean;
+  features: string[];
+}
 interface Beat {
   id: number;
   title: string;
@@ -20,7 +27,7 @@ interface Beat {
   tags: string[];
   description: string;
   isFree?: boolean;
-  licenses: Array<{ name: string; price: number; features: string[] }>;
+  licenses: License[];
 }
 
 interface CartItem { beat: Beat; licenseIndex: number; quantity: number; }
@@ -38,7 +45,7 @@ export default function Home() {
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [beats, setBeats] = useState<Beat[]>([]);
   const [selectedBeat, setSelectedBeat] = useState<Beat | null>(null);
-  const [selectedLicense, setSelectedLicense] = useState<number | null>(null);
+  const [selectedLicense, setSelectedLicense] = useState<number | null>(0);
   const [currentTrack, setCurrentTrack] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [cartContents, setCartContents] = useState<CartItem[]>([]);
@@ -77,15 +84,82 @@ export default function Home() {
       { name: "ODUMODUBLVCK", image: "https://i.scdn.co/image/ab6761610000517472481b593678546f6161e1b5" },
   ];
 
+  const sampleLicenses: License[] = [
+    { 
+      name: "Basic License", 
+      price: 29.95,
+      files: "MP3",
+      features: [
+        "Used for Music Recording",
+        "1 Music Video",
+        "Distribute up to 2,000 copies",
+        "100,000 Online Audio Streams"
+      ]
+    },
+    { 
+      name: "Premium License", 
+      price: 49.95,
+      files: "WAV, MP3",
+      features: [
+        "Used for Music Recording",
+        "1 Music Video",
+        "Distribute up to 5,000 copies",
+        "250,000 Online Audio Streams",
+        "For Profit Live Performances"
+      ]
+    },
+    { 
+      name: "Premium Plus License", 
+      price: 99.95,
+      files: "STEMS, WAV, MP3",
+      recommended: true,
+      features: [
+        "Used for Music Recording",
+        "1 Music Video",
+        "Distribute up to 10,000 copies",
+        "500,000 Online Audio Streams",
+        "For Profit Live Performances",
+        "Radio Broadcasting Rights (2 Stations)"
+      ]
+    },
+     { 
+      name: "Unlimited License", 
+      price: 149.95,
+      files: "STEMS, WAV, MP3",
+      features: [
+        "Used for Music Recording",
+        "Unlimited Music Videos",
+        "Unlimited Distribution",
+        "Unlimited Online Audio Streams",
+        "For Profit Live Performances",
+        "Radio Broadcasting Rights (Unlimited)"
+      ]
+    },
+    { 
+      name: "Exclusive License", 
+      price: 0, // Negotiate
+      files: "STEMS, WAV, MP3",
+      features: [
+        "Used for Music Recording",
+        "Unlimited Music Videos",
+        "Unlimited Distribution",
+        "Unlimited Online Audio Streams",
+        "For Profit Live Performances",
+        "Radio Broadcasting Rights (Unlimited)",
+        "Exclusive Rights to the Beat"
+      ]
+    }
+  ];
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setBeats([
-        { id: 1, title: "Spaceship", producer: "LuckyBoy", price: 25, cover: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80", bpm: 140, tags: ["trap", "hip-hop", "drake"], description: "...", licenses: [{ name: "Basic", price: 25, features: ["MP3 file", "Use for 1 music video", "100,000 streams"] }] },
-        { id: 2, title: "Attitude", producer: "BeatStars", price: 0, isFree: true, cover: "https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=80", bpm: 95, tags: ["pop", "chill", "upbeat"], description: "...", licenses: [{ name: "Free", price: 0, features: ["MP3 file for non-commercial use"] }] },
-        { id: 3, title: "Hold On", producer: "PremiumBeats", price: 50, cover: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80", bpm: 120, tags: ["r&b", "soul", "smooth"], description: "...", licenses: [{ name: "Basic", price: 50, features: ["MP3 and WAV files", "Unlimited non-commercial use"] }] },
-        { id: 4, title: "Kentro", producer: "Fireboy DML", price: 30, cover: "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=400&q=80", bpm: 140, tags: ["afrobeat", "dancehall", "summer"], description: "...", licenses: [{ name: "Basic", price: 30, features: ["MP3 file", "10,000 streams"] }] },
-        { id: 5, title: "Skido", producer: "Victony", price: 25, cover: "https://images.unsplash.com/photo-1458560871784-56d23406c791?w=400&q=80", bpm: 95, tags: ["lofi", "chillhop", "relax"], description: "...", licenses: [{ name: "Basic", price: 25, features: ["MP3 file"] }] },
-        { id: 6, title: "Jungle", producer: "Syndrome", price: 0, isFree: true, cover: "https://images.unsplash.com/photo-1471478331149-c72f17e33c73?w=400&q=80", bpm: 110, tags: ["drill", "uk", "grime"], description: "...", licenses: [{ name: "Free", price: 0, features: ["MP3 file for non-commercial use"] }] },
+        { id: 1, title: "Spaceship", producer: "LuckyBoy", price: 29.95, cover: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80", bpm: 140, tags: ["trap", "hip-hop", "drake"], description: "...", licenses: sampleLicenses },
+        { id: 2, title: "Attitude", producer: "BeatStars", price: 0, isFree: true, cover: "https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=80", bpm: 95, tags: ["pop", "chill", "upbeat"], description: "...", licenses: sampleLicenses.slice(0,1) },
+        { id: 3, title: "Hold On", producer: "PremiumBeats", price: 49.95, cover: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80", bpm: 120, tags: ["r&b", "soul", "smooth"], description: "...", licenses: sampleLicenses },
+        { id: 4, title: "Kentro", producer: "Fireboy DML", price: 29.95, cover: "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=400&q=80", bpm: 140, tags: ["afrobeat", "dancehall", "summer"], description: "...", licenses: sampleLicenses },
+        { id: 5, title: "Skido", producer: "Victony", price: 29.95, cover: "https://images.unsplash.com/photo-1458560871784-56d23406c791?w=400&q=80", bpm: 95, tags: ["lofi", "chillhop", "relax"], description: "...", licenses: sampleLicenses },
+        { id: 6, title: "Jungle", producer: "Syndrome", price: 0, isFree: true, cover: "https://images.unsplash.com/photo-1471478331149-c72f17e33c73?w=400&q=80", bpm: 110, tags: ["drill", "uk", "grime"], description: "...", licenses: sampleLicenses.slice(0,1) },
       ]);
       setIsLoading(false);
     }, 1000);
@@ -93,10 +167,19 @@ export default function Home() {
   }, []);
 
   // --- Handlers ---
-  const openLicenseModal = (beat: Beat) => { setSelectedBeat(beat); setLicenseModalOpen(true); };
+  const openLicenseModal = (beat: Beat) => { setSelectedBeat(beat); setLicenseModalOpen(true); setSelectedLicense(beat.licenses.findIndex(l => l.recommended)); };
   const closeLicenseModal = () => { setLicenseModalOpen(false); setSelectedBeat(null); setSelectedLicense(null); };
   const addToCart = () => {
     if (!selectedBeat || selectedLicense === null) return;
+    
+    // Avoid adding duplicates
+    const itemExists = cartContents.find(item => item.beat.id === selectedBeat.id && item.licenseIndex === selectedLicense);
+    if(itemExists) {
+       closeLicenseModal();
+       setCartModalOpen(true);
+      return;
+    }
+
     const cartItem: CartItem = {
       beat: selectedBeat,
       licenseIndex: selectedLicense,
@@ -137,7 +220,7 @@ export default function Home() {
       <div className="relative mb-4">
         <img src={beat.cover} alt={beat.title} className="w-full h-40 object-cover rounded-md" />
         <button onClick={() => togglePlay(beat.id)} className="absolute bottom-2 right-2 w-12 h-12 bg-green-500 text-black rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform group-hover:scale-105 shadow-lg">
-          {currentTrack === beat.id && isPlaying ? <Pause size={24} /> : <Play size={24} className="ml-1" />}
+          {currentTrack === beat.id && isPlaying ? <Pause size={24} fill="black" /> : <Play size={24} fill="black" className="ml-1" />}
         </button>
       </div>
       <h3 className="text-white font-bold truncate">{beat.title}</h3>
@@ -161,7 +244,7 @@ export default function Home() {
       <div className="min-h-screen bg-black text-white">
         <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
         
-        <div className="md:ml-56">
+        <div className="md:ml-64"> {/* Adjusted for wider sidebar */}
           <Header 
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
@@ -170,12 +253,12 @@ export default function Home() {
             cartItems={cartContents.length}
           />
 
-          <main className="p-4 md:p-8 bg-gradient-to-b from-[#222] to-[#121212]">
+          <main className="p-4 md:p-8 bg-gradient-to-b from-[#1a1a1a] to-[#121212]">
             <div className="max-w-full mx-auto">
 
               <Carousel title="Trending Categories" scrollRef={categoriesRef}>
                 {categories.map((category) => (
-                    <div key={category.name} className="bg-neutral-800 rounded-lg w-60 h-24 flex-shrink-0 relative overflow-hidden cursor-pointer">
+                    <div key={category.name} className="bg-neutral-800 rounded-lg w-60 h-24 flex-shrink-0 relative overflow-hidden cursor-pointer hover:bg-neutral-700 transition-colors">
                         <img src={category.cover} className="w-24 h-24 object-cover absolute -right-4 -bottom-4 transform rotate-12"/>
                         <h3 className="text-white font-bold text-xl p-4">{category.name}</h3>
                     </div>
