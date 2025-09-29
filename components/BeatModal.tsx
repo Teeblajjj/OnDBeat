@@ -51,7 +51,8 @@ const featureIcons: { [key: string]: React.ReactElement } = {
 export default function BeatModal({ isOpen, beat, onClose, selectedLicense, onLicenseSelect, onAddToCart, onBuyNow }: BeatModalProps) {
   if (!isOpen || !beat) return null;
 
-  const activeLicenseIndex = selectedLicense ?? (beat.licenses.findIndex(l => l.recommended) ?? 0);
+  const recommendedIndex = beat.licenses.findIndex(l => l.recommended);
+  const activeLicenseIndex = selectedLicense ?? (recommendedIndex !== -1 ? recommendedIndex : 0);
   const activeLicense = beat.licenses[activeLicenseIndex];
 
   return (
@@ -85,34 +86,38 @@ export default function BeatModal({ isOpen, beat, onClose, selectedLicense, onLi
             </div>
 
             {/* Usage Terms */}
-            <div className="bg-[#1a1a1a] p-6 rounded-xl">
-                 <h3 className="font-semibold text-white mb-5 text-xl">Usage Terms for <span className="text-blue-400">{activeLicense.name}</span></h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
-                    {activeLicense.features.map(feature => (
-                        <div key={feature} className="flex items-center gap-4">
-                            {featureIcons[feature] || <Check size={18} className="flex-shrink-0 text-green-500" />}
-                            <span className="text-gray-300">{feature}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
+             {activeLicense && (
+              <div className="bg-[#1a1a1a] p-6 rounded-xl">
+                  <h3 className="font-semibold text-white mb-5 text-xl">Usage Terms for <span className="text-blue-400">{activeLicense.name}</span></h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-4">
+                      {activeLicense.features.map(feature => (
+                          <div key={feature} className="flex items-center gap-4">
+                              {featureIcons[feature] || <Check size={18} className="flex-shrink-0 text-green-500" />}
+                              <span className="text-gray-300">{feature}</span>
+                          </div>
+                      ))}
+                  </div>
+              </div>
+            )}
         </div>
 
         {/* Footer */}
-        <div className="flex justify-between items-center p-6 border-t border-neutral-800 flex-shrink-0 bg-[#121212]">
-          <div>
-             <p className="text-sm text-gray-400">TOTAL:</p>
-             <p className="text-3xl font-bold text-white">{activeLicense.price > 0 ? `$${activeLicense.price.toFixed(2)}` : "-"}</p>
+        {activeLicense && (
+          <div className="flex justify-between items-center p-6 border-t border-neutral-800 flex-shrink-0 bg-[#121212]">
+            <div>
+              <p className="text-sm text-gray-400">TOTAL:</p>
+              <p className="text-3xl font-bold text-white">{activeLicense.price > 0 ? `$${activeLicense.price.toFixed(2)}` : "-"}</p>
+            </div>
+            <div className="flex gap-4">
+              <button onClick={onAddToCart} className="bg-neutral-700 hover:bg-neutral-600 text-white font-bold py-3 px-8 rounded-full transition-colors text-lg">
+                  Add to Cart
+              </button>
+              <button onClick={onBuyNow} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors text-lg">
+                  Buy now
+              </button>
+            </div>
           </div>
-          <div className="flex gap-4">
-             <button onClick={onAddToCart} className="bg-neutral-700 hover:bg-neutral-600 text-white font-bold py-3 px-8 rounded-full transition-colors text-lg">
-                Add to Cart
-            </button>
-             <button onClick={onBuyNow} className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-full transition-colors text-lg">
-                Buy now
-            </button>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/router";
 import { Play, Pause, Heart, ShoppingCart, Music, Check, Download, ChevronLeft, ChevronRight, Star, Mic2, Video, Copy, Signal, Users, RadioTower } from "lucide-react";
 import { BsBagPlus } from "react-icons/bs";
 import Sidebar from "../components/Sidebar";
@@ -50,6 +51,7 @@ export default function Home() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [cartContents, setCartContents] = useState<CartItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   // --- Refs for Carousels ---
   const categoriesRef = useRef<HTMLDivElement>(null);
@@ -167,12 +169,16 @@ export default function Home() {
   }, []);
 
   // --- Handlers ---
-  const openLicenseModal = (beat: Beat) => { setSelectedBeat(beat); setLicenseModalOpen(true); setSelectedLicense(beat.licenses.findIndex(l => l.recommended)); };
+  const openLicenseModal = (beat: Beat) => { 
+    setSelectedBeat(beat); 
+    setLicenseModalOpen(true); 
+    const recommendedIndex = beat.licenses.findIndex(l => l.recommended);
+    setSelectedLicense(recommendedIndex !== -1 ? recommendedIndex : 0);
+  };
   const closeLicenseModal = () => { setLicenseModalOpen(false); setSelectedBeat(null); setSelectedLicense(null); };
   const addToCart = () => {
     if (!selectedBeat || selectedLicense === null) return;
     
-    // Avoid adding duplicates
     const itemExists = cartContents.find(item => item.beat.id === selectedBeat.id && item.licenseIndex === selectedLicense);
     if(itemExists) {
        closeLicenseModal();
@@ -189,6 +195,29 @@ export default function Home() {
     closeLicenseModal();
     setCartModalOpen(true);
   };
+
+  const handleBuyNow = () => {
+      if (!selectedBeat || selectedLicense === null) return;
+      
+      const itemExists = cartContents.find(item => item.beat.id === selectedBeat.id && item.licenseIndex === selectedLicense);
+      if(!itemExists) {
+        const cartItem: CartItem = {
+          beat: selectedBeat,
+          licenseIndex: selectedLicense,
+          quantity: 1
+        };
+        setCartContents(prev => [...prev, cartItem]);
+      }
+
+      closeLicenseModal();
+      router.push("/checkout");
+  }
+
+  const handleCheckout = () => {
+      setCartModalOpen(false);
+      router.push("/checkout");
+  }
+
   const togglePlay = (id: number) => {
     if (currentTrack === id) setIsPlaying(!isPlaying);
     else { setCurrentTrack(id); setIsPlaying(true); }
@@ -302,8 +331,8 @@ export default function Home() {
         </div>
       </div>
 
-      <BeatModal isOpen={isLicenseModalOpen} onClose={closeLicenseModal} beat={selectedBeat} selectedLicense={selectedLicense} onLicenseSelect={setSelectedLicense} onAddToCart={addToCart} onBuyNow={() => {}} />
-      <CartModal isOpen={cartModalOpen} onClose={() => setCartModalOpen(false)} cartItems={cartContents} onRemoveItem={() => {}} onUpdateQuantity={() => {}} onCheckout={() => {}} />
+      <BeatModal isOpen={isLicenseModalOpen} onClose={closeLicenseModal} beat={selectedBeat} selectedLicense={selectedLicense} onLicenseSelect={setSelectedLicense} onAddToCart={addToCart} onBuyNow={handleBuyNow} />
+      <CartModal isOpen={cartModalOpen} onClose={() => setCartModalOpen(false)} cartItems={cartContents} onRemoveItem={() => {}} onUpdateQuantity={() => {}} onCheckout={handleCheckout} />
     </>
   );
 }
