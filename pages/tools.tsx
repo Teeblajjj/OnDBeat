@@ -1,77 +1,38 @@
-import Head from "next/head";
-import { useState } from "react";
-import { AudioWaveform, Mic, Volume2, Settings, Play, Pause, Upload, Download } from "lucide-react";
-import Sidebar from "../components/Sidebar";
-import Header from "../components/Header";
-import PlayerBar from "../components/PlayerBar";
-import { useAuth } from "../context/AuthContext";
-import CartModal from "../components/CartModal";
+import Head from 'next/head'
+import { useState } from 'react'
+import Sidebar from '../components/Sidebar'
+import Header from '../components/Header'
+import PlayerBar from '../components/PlayerBar'
+import CartModal from '../components/CartModal'
+import { AudioWaveform, Mic, Album, SlidersHorizontal, Music, ChevronRight, Play } from 'lucide-react'
 
-export default function AudioTools() {
+
+// --- Dummy Data ---
+const tools = [
+  { name: "Beat Sequencer", description: "Craft rhythms with an intuitive drum machine.", icon: AudioWaveform, color: "text-blue-400" },
+  { name: "Vocal Recorder", description: "Capture high-quality audio for your tracks.", icon: Mic, color: "text-red-400" },
+  { name: "Sample Library", description: "Explore millions of royalty-free sounds.", icon: Album, color: "text-yellow-400" },
+  { name: "Mixing & Mastering AI", description: "Get professional polish with our smart audio engineer.", icon: SlidersHorizontal, color: "text-purple-400" },
+];
+
+const recentProjects = [
+  { name: "Midnight Drive", type: "Beat", lastEdited: "3 hours ago", cover: "https://images.unsplash.com/photo-1516999654410-482a4c2fee14?w=100&q=80" },
+  { name: "Vocal Idea #3", type: "Recording", lastEdited: "1 day ago", cover: "https://images.unsplash.com/photo-1588623229388-a2923f500640?w=100&q=80" },
+  { name: "Lofi Jam Session", type: "Beat", lastEdited: "4 days ago", cover: "https://images.unsplash.com/photo-1456428199391-a3b1cb8e35a3?w=100&q=80" },
+];
+
+// --- Page Component ---
+export default function Tools() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isRecording, setIsRecording] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const { openAuthModal } = useAuth();
-  const [cartItems, setCartItems] = useState(0);
   const [cartModalOpen, setCartModalOpen] = useState(false);
-  const [cartContents, setCartContents] = useState<any[]>([]);
-
-  const audioTools = [
-    {
-      name: "Beat Maker",
-      description: "Create beats with our built-in sequencer",
-      icon: AudioWaveform,
-      color: "bg-blue-500",
-      href: "/tools/beat-maker"
-    },
-    {
-      name: "Voice Recorder",
-      description: "Record vocals and instruments",
-      icon: Mic,
-      color: "bg-red-500",
-      href: "/tools/recorder"
-    },
-    {
-      name: "Audio Editor",
-      description: "Edit and enhance your audio files",
-      icon: Settings,
-      color: "bg-purple-500",
-      href: "/tools/editor"
-    },
-    {
-      name: "Sample Library",
-      description: "Browse and download samples",
-      icon: Download,
-      color: "bg-green-500",
-      href: "/tools/samples"
-    }
-  ];
-
-  const recentProjects = [
-    { name: "Midnight Trap", lastModified: "2 hours ago", type: "Beat" },
-    { name: "Urban Dreams", lastModified: "1 day ago", type: "Beat" },
-    { name: "Street Vibes", lastModified: "3 days ago", type: "Mix" },
-    { name: "City Lights", lastModified: "1 week ago", type: "Beat" }
-  ];
+  const [cartContents] = useState<any[]>([]);
 
   return (
     <>
       <Head>
-        <title>Audio Tools - ONDBeat</title>
-        <meta name="description" content="Professional audio tools for beat making, recording, and editing" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <title>Creator Tools - ONDBeat</title>
       </Head>
-
-      <CartModal 
-        isOpen={cartModalOpen} 
-        onClose={() => setCartModalOpen(false)}
-        cartItems={cartContents}
-        onRemoveItem={() => {}}
-        onUpdateQuantity={() => {}}
-        onCheckout={() => {}}
-      />
 
       <div className="min-h-screen bg-black text-white">
         <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
@@ -82,111 +43,70 @@ export default function AudioTools() {
             onSearchChange={setSearchQuery}
             onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
             onCartClick={() => setCartModalOpen(true)}
-            cartItems={cartItems}
+            cartItems={cartContents.length}
           />
 
-          <main className="p-6">
-            <div className="max-w-7xl mx-auto">
-              {/* Page Header */}
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2">Audio Tools</h1>
-                <p className="text-gray-400">Professional tools for beat making, recording, and editing</p>
-              </div>
-
-              {/* Quick Actions */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-neutral-900 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">Quick Record</h3>
-                    <Mic className="w-6 h-6 text-red-400" />
-                  </div>
-                  <p className="text-gray-400 text-sm mb-4">Start recording immediately</p>
-                  <button 
-                    className={`w-full py-3 rounded-lg font-semibold transition-colors ${
-                      isRecording 
-                        ? "bg-red-600 hover:bg-red-700 text-white" 
-                        : "bg-red-500 hover:bg-red-600 text-white"
-                    }`}
-                    onClick={() => setIsRecording(!isRecording)}
-                  >
-                    {isRecording ? "Stop Recording" : "Start Recording"}
-                  </button>
+          <main className="p-4 md:p-8 bg-gradient-to-b from-neutral-900 to-[#121212]">
+            <div className="max-w-6xl mx-auto">
+                 {/* --- Hero Section --- */}
+                 <div className="text-center py-12 md:py-16">
+                    <Music size={48} className="mx-auto text-green-400 mb-4" />
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3">Create Your Next Hit</h1>
+                    <p className="text-gray-400 text-lg mb-8">All the tools you need to produce, record, and perfect your sound.</p>
+                    <button className="bg-green-500 hover:bg-green-600 text-black font-bold py-3 px-8 rounded-full transition-colors">
+                        Start New Project
+                    </button>
                 </div>
 
-                <div className="bg-neutral-900 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">Beat Player</h3>
-                    <Volume2 className="w-6 h-6 text-green-400" />
-                  </div>
-                  <p className="text-gray-400 text-sm mb-4">Play your latest creation</p>
-                  <button 
-                    className="w-full py-3 rounded-lg font-semibold bg-green-500 hover:bg-green-600 text-black transition-colors flex items-center justify-center gap-2"
-                    onClick={() => setIsPlaying(!isPlaying)}
-                  >
-                    {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                    {isPlaying ? "Pause" : "Play"}
-                  </button>
-                </div>
-
-                <div className="bg-neutral-900 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">Upload File</h3>
-                    <Upload className="w-6 h-6 text-blue-400" />
-                  </div>
-                  <p className="text-gray-400 text-sm mb-4">Import audio files</p>
-                  <button className="w-full py-3 rounded-lg font-semibold bg-blue-500 hover:bg-blue-600 text-white transition-colors">
-                    Choose File
-                  </button>
-                </div>
-              </div>
-
-              {/* Audio Tools Grid */}
-              <div className="mb-8">
-                <h2 className="text-xl font-bold mb-6">Available Tools</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  {audioTools.map((tool, index) => {
-                    const IconComponent = tool.icon;
-                    return (
-                      <div key={index} className="bg-neutral-900 rounded-lg p-6 hover:bg-neutral-800 transition-colors cursor-pointer">
-                        <div className={`w-12 h-12 ${tool.color} rounded-lg flex items-center justify-center mb-4`}>
-                          <IconComponent className="w-6 h-6 text-white" />
+                {/* --- Tools Grid --- */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+                    {tools.map(tool => (
+                        <div key={tool.name} className="bg-[#181818] p-6 rounded-lg flex items-center gap-6 hover:bg-[#282828] transition-colors cursor-pointer">
+                            <div className="bg-neutral-800 p-4 rounded-full">
+                                <tool.icon size={28} className={tool.color} />
+                            </div>
+                            <div className="flex-1">
+                                <h3 className="text-xl font-bold text-white mb-1">{tool.name}</h3>
+                                <p className="text-gray-400">{tool.description}</p>
+                            </div>
+                             <button className="bg-white/10 text-white font-semibold py-2 px-4 rounded-full hover:bg-white/20 transition-colors">
+                                Launch
+                            </button>
                         </div>
-                        <h3 className="text-lg font-semibold mb-2">{tool.name}</h3>
-                        <p className="text-gray-400 text-sm">{tool.description}</p>
-                      </div>
-                    );
-                  })}
+                    ))}
                 </div>
-              </div>
 
-              {/* Recent Projects */}
-              <div className="bg-neutral-900 rounded-lg p-6">
-                <h2 className="text-xl font-bold mb-6">Recent Projects</h2>
-                <div className="space-y-4">
-                  {recentProjects.map((project, index) => (
-                    <div key={index} className="flex items-center justify-between p-4 bg-neutral-800 rounded-lg hover:bg-neutral-700 transition-colors cursor-pointer">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 bg-green-500 rounded-lg flex items-center justify-center">
-                          <span className="text-black font-bold">♪</span>
-                        </div>
-                        <div>
-                          <h3 className="font-semibold">{project.name}</h3>
-                          <p className="text-gray-400 text-sm">{project.type} • {project.lastModified}</p>
-                        </div>
-                      </div>
-                      <button className="text-gray-400 hover:text-white transition-colors">
-                        <Play className="w-5 h-5" />
-                      </button>
+                {/* --- Recent Projects --- */}
+                <div>
+                    <h2 className="text-2xl font-bold text-white mb-4">Recent Projects</h2>
+                    <div className="space-y-4">
+                        {recentProjects.map(project => (
+                            <div key={project.name} className="bg-[#181818] p-4 rounded-lg flex items-center justify-between hover:bg-[#282828] transition-colors cursor-pointer group">
+                                <div className="flex items-center gap-4">
+                                    <img src={project.cover} alt={project.name} className="w-14 h-14 object-cover rounded-md"/>
+                                    <div>
+                                        <p className="font-bold text-white">{project.name}</p>
+                                        <p className="text-sm text-gray-400">{project.type} ・ Edited {project.lastEdited}</p>
+                                    </div>
+                                </div>
+                                 <div className="flex items-center gap-4">
+                                    <button className="w-12 h-12 bg-green-500 text-black rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:scale-105 shadow-lg">
+                                        <Play size={24} className="ml-1" />
+                                    </button>
+                                    <ChevronRight size={24} className="text-gray-500" />
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                  ))}
                 </div>
-              </div>
+
             </div>
           </main>
 
-          <PlayerBar />
+          <PlayerBar isPlaying={false} onPlayPause={() => {}} currentTrack={null} progress={0} />
+          <CartModal isOpen={cartModalOpen} onClose={() => setCartModalOpen(false)} cartItems={cartContents} onRemoveItem={() => {}} onUpdateQuantity={() => {}} onCheckout={() => {}} />
         </div>
       </div>
     </>
-  );
+  )
 }

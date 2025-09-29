@@ -1,4 +1,4 @@
-import { X, Play, Pause, Check, ShoppingCart } from "lucide-react";
+import { X, Play, Pause, Check, ShoppingCart, Download, Info } from 'lucide-react';
 
 interface Beat {
   id: number;
@@ -6,152 +6,88 @@ interface Beat {
   producer: string;
   price: number;
   cover: string;
-  time: string;
-  likes: number;
-  comments: number;
-  shares: number;
   bpm: number;
-  description: string;
-  licenses: Array<{
-    name: string;
-    price: number;
-    description: string;
-    features: string[];
-    limitations: string[];
-  }>;
+  tags: string[];
+  licenses: Array<{ name: string; price: number; features: string[] }>;
 }
 
 interface BeatModalProps {
   isOpen: boolean;
   beat: Beat | null;
-  selectedLicense: number | null;
-  isPlaying: boolean;
   onClose: () => void;
-  onLicenseSelect: (index: number) => void;
-  onTogglePlay: () => void;
-  onAddToCart: (beat: Beat, licenseIndex: number) => void;
+  // Add other props like onAddToCart, onPlay, etc. as needed
 }
 
-export default function BeatModal({
-  isOpen,
-  beat,
-  selectedLicense,
-  isPlaying,
-  onClose,
-  onLicenseSelect,
-  onTogglePlay,
-  onAddToCart
-}: BeatModalProps) {
+export default function BeatModal({ isOpen, beat, onClose }: BeatModalProps) {
+  const [selectedLicense, setSelectedLicense] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+
   if (!isOpen || !beat) return null;
 
+  const activeLicense = beat.licenses[selectedLicense];
+
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4">
-      <div className="bg-neutral-900 rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto">
-        <div className="flex justify-between items-start mb-6">
-          <h2 className="text-2xl font-bold">{beat.title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-white">
-            <X className="w-6 h-6" />
-          </button>
+    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
+      <div 
+        className="bg-gradient-to-t from-[#121212] to-[#181818] border border-neutral-700/50 rounded-xl shadow-lg w-full max-w-4xl max-h-[95vh] grid grid-cols-1 md:grid-cols-2 overflow-hidden" 
+        onClick={e => e.stopPropagation()}
+      >
+        {/* Left Side: Cover & Info */}
+        <div className="relative flex flex-col justify-between p-8 bg-cover bg-center" style={{backgroundImage: `url(${beat.cover})`}}>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
+            <div className="relative z-10">
+                <button onClick={onClose} className="absolute top-[-1rem] right-[-1rem] text-gray-400 hover:text-white transition-colors bg-black/50 rounded-full p-1">
+                    <X size={24} />
+                </button>
+                <h1 className="text-4xl font-extrabold text-white mb-2">{beat.title}</h1>
+                <p className="text-lg text-gray-300">{beat.producer}</p>
+                <div className="mt-4 flex gap-2">
+                    {beat.tags.map(tag => (
+                        <span key={tag} className="bg-white/10 text-white text-xs font-bold px-2.5 py-1 rounded-full capitalize backdrop-blur-sm">{tag}</span>
+                    ))}
+                    <span className="bg-white/10 text-white text-xs font-bold px-2.5 py-1 rounded-full backdrop-blur-sm">{beat.bpm} BPM</span>
+                </div>
+            </div>
+             <div className="relative z-10 flex items-center justify-center">
+                <button onClick={() => setIsPlaying(!isPlaying)} className="w-20 h-20 bg-green-500 text-black rounded-full flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform">
+                    {isPlaying ? <Pause size={40} fill="black" /> : <Play size={40} fill="black" className="ml-2" />}
+                </button>
+            </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-6">
-          {/* Left Side - Cover and Player */}
-          <div>
-            <div className="relative mb-4">
-              <img
-                src={beat.cover}
-                alt={beat.title}
-                className="w-full h-64 object-cover rounded-lg"
-              />
-              <button
-                onClick={onTogglePlay}
-                className="absolute inset-0 flex items-center justify-center bg-black/50 hover:bg-black/70 rounded-lg opacity-0 hover:opacity-100 transition-opacity"
-              >
-                {isPlaying ? (
-                  <Pause className="w-16 h-16 text-green-500" />
-                ) : (
-                  <Play className="w-16 h-16 text-green-500 ml-2" />
-                )}
-              </button>
+        {/* Right Side: Licenses & Purchase */}
+        <div className="flex flex-col p-8 overflow-y-auto">
+            <h2 className="text-2xl font-bold text-white mb-4">Choose Your License</h2>
+            <div className="space-y-3 mb-6">
+                {beat.licenses.map((license, index) => (
+                    <div 
+                        key={index}
+                        onClick={() => setSelectedLicense(index)}
+                        className={`p-4 rounded-lg cursor-pointer transition-all border-2 ${selectedLicense === index ? 'bg-green-500/10 border-green-500' : 'bg-neutral-800/60 border-transparent hover:bg-neutral-700/80'}`}>
+                        <div className="flex justify-between items-center">
+                            <span className="font-bold text-lg text-white">{license.name} License</span>
+                            <span className="font-extrabold text-2xl text-white">${license.price}</span>
+                        </div>
+                    </div>
+                ))}
             </div>
 
-            <div className="space-y-2 text-sm text-gray-400">
-              <p><strong className="text-white">Producer:</strong> {beat.producer}</p>
-              <p><strong className="text-white">Released:</strong> {beat.time}</p>
-              <p><strong className="text-white">BPM:</strong> {beat.bpm}</p>
-              <p><strong className="text-white">Description:</strong></p>
-              <p className="text-gray-300">{beat.description}</p>
-            </div>
-          </div>
-
-          {/* Right Side - Licenses */}
-          <div>
-            <h3 className="text-xl font-bold mb-4">Choose License</h3>
-            <div className="space-y-4">
-              {beat.licenses.map((license, index) => (
-                <div
-                  key={index}
-                  className={`border rounded-lg p-4 cursor-pointer transition-colors ${
-                    selectedLicense === index
-                      ? 'border-green-500 bg-green-500/10'
-                      : 'border-gray-700 hover:border-gray-600'
-                  }`}
-                  onClick={() => onLicenseSelect(index)}
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <h4 className="font-bold text-lg">{license.name}</h4>
-                      <p className="text-gray-400 text-sm">{license.description}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-green-500">${license.price}</p>
-                      {selectedLicense === index && (
-                        <Check className="w-6 h-6 text-green-500 ml-auto" />
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <div>
-                      <p className="text-sm font-medium text-green-400 mb-1">Features:</p>
-                      <ul className="text-sm text-gray-300 space-y-1">
-                        {license.features.map((feature, i) => (
-                          <li key={i} className="flex items-center">
-                            <Check className="w-4 h-4 text-green-500 mr-2" />
-                            {feature}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-
-                    {license.limitations.length > 0 && (
-                      <div>
-                        <p className="text-sm font-medium text-red-400 mb-1">Limitations:</p>
-                        <ul className="text-sm text-gray-300 space-y-1">
-                          {license.limitations.map((limitation, i) => (
-                            <li key={i} className="flex items-center">
-                              <X className="w-4 h-4 text-red-500 mr-2" />
-                              {limitation}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+            <div className="bg-neutral-800/60 p-6 rounded-lg mb-6 flex-grow">
+                 <h3 className="font-semibold text-white mb-3 text-lg">License Details for <span className="text-green-400">{activeLicense.name}</span></h3>
+                <ul className="space-y-2 text-gray-300">
+                    {activeLicense.features.map(feature => (
+                        <li key={feature} className="flex items-center gap-3">
+                            <Check size={18} className="flex-shrink-0 text-green-500" />
+                            <span>{feature}</span>
+                        </li>
+                    ))}
+                </ul>
             </div>
 
-            {selectedLicense !== null && (
-              <button
-                onClick={() => onAddToCart(beat, selectedLicense)}
-                className="w-full mt-6 bg-green-500 text-black font-bold py-3 rounded-lg hover:bg-green-400 transition-colors flex items-center justify-center space-x-2"
-              >
-                <ShoppingCart className="w-5 h-5" />
-                <span>Add to Cart - ${beat.licenses[selectedLicense].price}</span>
-              </button>
-            )}
-          </div>
+            <button className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-4 rounded-full transition-colors flex items-center justify-center gap-2 text-lg">
+                <ShoppingCart size={20} />
+                Add to Cart - ${activeLicense.price}
+            </button>
         </div>
       </div>
     </div>

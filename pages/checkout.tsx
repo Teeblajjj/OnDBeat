@@ -1,9 +1,10 @@
-import Head from "next/head";
-import { 
-  ShoppingCart, X, CheckCircle, Play, Pause,
-  Home, Package, CreditCard, Download, Music2 
-} from "lucide-react";
-import { useState } from "react";
+import Head from 'next/head'
+import { useState } from 'react'
+import Sidebar from '../components/Sidebar'
+import Header from '../components/Header'
+import PlayerBar from '../components/PlayerBar'
+import CartModal from '../components/CartModal'
+import { ShoppingCart, X, CheckCircle, CreditCard, Download, Lock } from 'lucide-react'
 
 interface Beat {
   id: number;
@@ -13,17 +14,18 @@ interface Beat {
   cover: string;
 }
 
-// This will be replaced with actual cart data from context or props
 const sampleCart: Beat[] = [
-  { id: 1, title: "lil mosey x nav type beat – 'spaceship'", producer: "LuckyBoy @prodbyluckyboy", price: 10, cover: "https://placehold.co/300x300/1a1a1a/white?text=BEAT" },
-  { id: 2, title: "Better with time – Neo Soul Type Beat", producer: "BeatStars @beatstars", price: 15, cover: "https://placehold.co/300x300/1a1a1a/white?text=BEAT" },
+  { id: 1, title: "Sunset Drive", producer: "Metro Boomin", price: 35, cover: "https://images.unsplash.com/photo-1516999654410-482a4c2fee14?w=400&q=80" },
+  { id: 2, title: "City Lights", producer: "The Weeknd", price: 55, cover: "https://images.unsplash.com/photo-1519892338195-e1b93931f681?w=400&q=80" },
 ];
 
+// --- Page Component ---
 export default function Checkout() {
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [cartModalOpen, setCartModalOpen] = useState(false);
   const [cart, setCart] = useState<Beat[]>(sampleCart);
   const [isPaid, setIsPaid] = useState(false);
-  const [playingBeat, setPlayingBeat] = useState<number | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
 
   const total = cart.reduce((sum, beat) => sum + beat.price, 0);
 
@@ -31,224 +33,146 @@ export default function Checkout() {
     setCart(cart.filter(beat => beat.id !== id));
   };
 
-  const handlePay = () => {
+  const handlePay = (e: React.FormEvent) => {
+    e.preventDefault();
     setIsPaid(true);
   };
-
-  const togglePlay = (id: number) => {
-    if (playingBeat === id) setIsPlaying(!isPlaying);
-    else { setPlayingBeat(id); setIsPlaying(true); }
-  };
-
-  return (
-    <div className="bg-gradient-to-br from-[#0f0f0f] to-[#1a1a1a] min-h-screen text-[#e6e6e6]">
-      <Head>
-        <title>Checkout - ONDBeat</title>
-        <meta name="description" content="Checkout page for ONDBeat" />
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-
-      <main className="max-w-4xl mx-auto px-4 py-8 md:py-12">
-        {/* Header Section */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#1ed760]/20 rounded-full mb-6">
-            <ShoppingCart className="w-8 h-8 text-[#1ed760]" />
-          </div>
-          <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-[#1ed760] to-[#53c268] bg-clip-text text-transparent mb-2">
-            Complete Your Purchase
-          </h1>
-          <p className="text-gray-400 max-w-md mx-auto">
-            Secure checkout for your selected beats. All transactions are encrypted and secure.
-          </p>
-        </div>
-
-        {!isPaid && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Cart Section */}
-            <div className="lg:col-span-2">
-              <div className="bg-[#1a1a1a]/80 backdrop-blur-sm rounded-2xl border border-[#222] p-6 md:p-8">
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold flex items-center gap-2">
-                    <Music2 className="w-5 h-5 text-[#1ed760]" />
-                    Your Cart ({cart.length})
-                  </h2>
-                  {cart.length > 0 && (
-                    <span className="text-lg font-bold text-[#1ed760]">
-                      ${total}.00
-                    </span>
-                  )}
-                </div>
-                
-                {cart.length === 0 ? (
-                  <div className="text-center py-12">
-                    <ShoppingCart className="w-16 h-16 text-gray-600 mx-auto mb-4 opacity-50" />
-                    <p className="text-gray-400 text-lg">Your cart is empty</p>
-                    <button 
-                      onClick={() => window.location.href = '/'}
-                      className="mt-4 bg-[#1ed760] hover:bg-[#53c268] text-black px-6 py-3 rounded-full font-bold transition-all transform hover:scale-105"
-                    >
-                      Browse Beats
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-4">
-                    {cart.map((beat) => (
-                      <div key={beat.id} className="flex items-center justify-between p-4 bg-[#222]/30 rounded-xl border border-[#2a2a2a] hover:border-[#1ed760]/30 transition-all">
-                        <div className="flex items-center gap-4">
-                          <div className="relative w-16 h-16 rounded-lg overflow-hidden">
-                            <img src={beat.cover} alt={beat.title} className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                              <Play className="w-6 h-6 text-[#1ed760]" />
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-white truncate">{beat.title}</p>
-                            <p className="text-gray-400 text-sm truncate">by {beat.producer}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="font-bold text-[#1ed760] whitespace-nowrap">${beat.price}.00</span>
-                          <button 
-                            onClick={() => handleRemove(beat.id)}
-                            className="text-red-500 hover:text-red-400 hover:bg-red-500/10 p-2 rounded-full transition-colors"
-                          >
-                            <X className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Payment Section */}
-            <div className="lg:col-span-1">
-              <div className="bg-[#1a1a1a]/80 backdrop-blur-sm rounded-2xl border border-[#222] p-6 md:p-8 sticky top-8">
-                <h2 className="text-xl font-bold mb-6 flex items-center gap-2">
-                  <CreditCard className="w-5 h-5 text-[#1ed760]" />
-                  Payment Details
-                </h2>
-                
-                <div className="space-y-4 mb-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Cardholder Name</label>
-                    <input 
-                      type="text" 
-                      placeholder="John Doe"
-                      className="w-full p-3 rounded-xl bg-[#0f0f0f] border border-[#222] text-[#e6e6e6] focus:ring-2 focus:ring-[#1ed760] outline-none transition-all"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-2">Card Number</label>
-                    <input 
-                      type="text" 
-                      placeholder="1234 5678 9012 3456"
-                      className="w-full p-3 rounded-xl bg-[#0f0f0f] border border-[#222] text-[#e6e6e6] focus:ring-2 focus:ring-[#1ed760] outline-none transition-all"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">Expiry Date</label>
-                      <input 
-                        type="text" 
-                        placeholder="MM/YY"
-                        className="w-full p-3 rounded-xl bg-[#0f0f0f] border border-[#222] text-[#e6e6e6] focus:ring-2 focus:ring-[#1ed760] outline-none transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-300 mb-2">CVC</label>
-                      <input 
-                        type="text" 
-                        placeholder="123"
-                        className="w-full p-3 rounded-xl bg-[#0f0f0f] border border-[#222] text-[#e6e6e6] focus:ring-2 focus:ring-[#1ed760] outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="border-t border-[#222] pt-6">
-                  <div className="flex justify-between items-center mb-6">
-                    <span className="text-gray-400">Total:</span>
-                    <span className="text-2xl font-bold text-white">${total}.00</span>
-                  </div>
-                  <button 
-                    onClick={handlePay}
-                    disabled={cart.length === 0}
-                    className="w-full bg-gradient-to-r from-[#1ed760] to-[#53c268] hover:from-[#53c268] hover:to-[#1ed760] text-black px-6 py-4 rounded-xl font-bold text-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                  >
-                    Complete Purchase
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {isPaid && (
-          <div className="text-center">
-            <div className="inline-flex items-center justify-center w-24 h-24 bg-[#1ed760]/20 rounded-full mb-8">
-              <CheckCircle className="w-12 h-12 text-[#1ed760]" />
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Payment Successful!</h2>
-            <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
-              Your beats have been purchased successfully. You can now download and use them according to your license terms.
-            </p>
-
-            <div className="max-w-2xl mx-auto space-y-6 mb-12">
-              {cart.map((beat) => (
-                <div key={beat.id} className="bg-[#1a1a1a]/80 backdrop-blur-sm rounded-2xl border border-[#222] p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <img src={beat.cover} className="w-16 h-16 rounded-lg object-cover" />
-                      <div className="text-left">
-                        <p className="font-semibold text-white">{beat.title}</p>
-                        <p className="text-gray-400 text-sm">by {beat.producer}</p>
-                        <p className="text-[#1ed760] font-bold text-sm mt-1">${beat.price}.00</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <button
-                        onClick={() => togglePlay(beat.id)}
-                        className="bg-[#1ed760]/20 hover:bg-[#1ed760]/30 text-[#1ed760] px-4 py-2 rounded-xl flex items-center gap-2 transition-colors"
-                      >
-                        {playingBeat === beat.id && isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                        Preview
-                      </button>
-                      <a
-                        href={`/downloads/${beat.id}.mp3`}
-                        download
-                        className="bg-gradient-to-r from-[#1ed760] to-[#53c268] hover:from-[#53c268] hover:to-[#1ed760] text-black px-4 py-2 rounded-xl font-bold flex items-center gap-2 transition-all"
-                      >
-                        <Download className="w-4 h-4" />
-                        Download
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-md mx-auto">
-              <button 
-                onClick={() => window.location.href = '/'}
-                className="flex-1 bg-[#1a1a1a] hover:bg-[#222] border border-[#222] text-white px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
-              >
-                <Home className="w-5 h-5" />
-                Go to Home
-              </button>
-              <button 
-                onClick={() => window.location.href = '/orders'}
-                className="flex-1 bg-gradient-to-r from-[#1ed760] to-[#53c268] hover:from-[#53c268] hover:to-[#1ed760] text-black px-6 py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all"
-              >
-                <Package className="w-5 h-5" />
-                Manage Orders
-              </button>
-            </div>
-          </div>
-        )}
-      </main>
+  
+  const FormInput = ({ label, placeholder, type = "text" }) => (
+    <div>
+        <label className="block text-sm font-medium text-gray-400 mb-2">{label}</label>
+        <input 
+            type={type} 
+            placeholder={placeholder}
+            className="w-full p-3 rounded-md bg-neutral-800 border border-neutral-700 text-white focus:ring-2 focus:ring-green-500 outline-none transition-all"
+        />
     </div>
   );
+
+  // --- Main Render ---
+  return (
+    <>
+      <Head>
+        <title>Checkout - ONDBeat</title>
+      </Head>
+
+      <div className="min-h-screen bg-black text-white">
+        <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
+        
+        <div className="md:ml-56">
+          <Header 
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onCartClick={() => setCartModalOpen(true)}
+            cartItems={cart.length}
+          />
+
+          <main className="p-4 md:p-8 bg-gradient-to-b from-neutral-900 to-[#121212]">
+            <div className="max-w-4xl mx-auto">
+
+              {!isPaid ? (
+                // --- CHECKOUT FORM --- 
+                <>
+                    <div className="mb-8 text-center">
+                        <h1 className="text-4xl font-extrabold text-white mb-2">Checkout</h1>
+                        <p className="text-gray-400 text-lg">Finalize your order.</p>
+                    </div>
+                    <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+                        {/* --- Cart Summary --- */}
+                        <div className="lg:col-span-3 bg-[#181818] p-6 rounded-lg">
+                           <h2 className="text-xl font-bold text-white mb-4">Order Summary</h2>
+                           {cart.length > 0 ? (
+                               <div className="space-y-4">
+                                   {cart.map(beat => (
+                                       <div key={beat.id} className="flex items-center justify-between">
+                                           <div className="flex items-center gap-4">
+                                               <img src={beat.cover} alt={beat.title} className="w-14 h-14 object-cover rounded-md" />
+                                               <div>
+                                                   <p className="font-semibold text-white">{beat.title}</p>
+                                                   <p className="text-gray-400 text-sm">{beat.producer}</p>
+                                               </div>
+                                           </div>
+                                           <div className="flex items-center gap-4">
+                                                <p className="font-bold text-white">${beat.price.toFixed(2)}</p>
+                                                <button onClick={() => handleRemove(beat.id)} className="text-neutral-500 hover:text-white transition-colors p-1"><X size={18} /></button>
+                                           </div>
+                                       </div>
+                                   ))}
+                                   <div className="border-t border-neutral-700 mt-4 pt-4 flex justify-between items-center">
+                                       <p className="text-lg font-semibold text-white">Total</p>
+                                       <p className="text-2xl font-bold text-white">${total.toFixed(2)}</p>
+                                   </div>
+                               </div>
+                           ) : (
+                                <div className="text-center py-10">
+                                    <ShoppingCart size={40} className="mx-auto text-neutral-600 mb-4" />
+                                    <p className="text-gray-400">Your cart is empty.</p>
+                                </div>
+                           )}
+                        </div>
+
+                        {/* --- Payment Form --- */}
+                        <div className="lg:col-span-2 bg-[#181818] p-6 rounded-lg">
+                            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2"><CreditCard size={20} /> Payment</h2>
+                            <form onSubmit={handlePay} className="space-y-4">
+                                <FormInput label="Cardholder Name" placeholder="John M. Doe" />
+                                <FormInput label="Card Number" placeholder="1234 5678 9012 3456" />
+                                <div className="grid grid-cols-2 gap-4">
+                                    <FormInput label="Expiry Date" placeholder="MM/YY" />
+                                    <FormInput label="CVC" placeholder="123" />
+                                </div>
+                                <div className="pt-4">
+                                    <button 
+                                        type="submit" 
+                                        disabled={cart.length === 0}
+                                        className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-3 px-6 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                    >
+                                        <Lock size={16} />
+                                        Pay ${total.toFixed(2)}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </>
+              ) : (
+                // --- CONFIRMATION SCREEN ---
+                <div className="text-center bg-[#181818] p-8 rounded-lg">
+                    <CheckCircle size={60} className="mx-auto text-green-500 mb-4" />
+                    <h1 className="text-3xl font-bold text-white mb-2">Payment Successful!</h1>
+                    <p className="text-gray-400 mb-8">Your order is complete. Download your files below.</p>
+
+                    <div className="max-w-lg mx-auto space-y-4 mb-8 text-left">
+                        {cart.map(beat => (
+                            <div key={beat.id} className="flex items-center justify-between bg-neutral-800 p-4 rounded-lg">
+                                <div className="flex items-center gap-4">
+                                    <img src={beat.cover} alt={beat.title} className="w-14 h-14 object-cover rounded-md" />
+                                    <div>
+                                        <p className="font-semibold text-white">{beat.title}</p>
+                                        <p className="text-gray-400 text-sm">{beat.producer}</p>
+                                    </div>
+                                </div>
+                                <a href="#" download className="bg-green-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded-full transition-colors flex items-center gap-2 text-sm">
+                                    <Download size={16} />
+                                    <span>Download</span>
+                                </a>
+                            </div>
+                        ))}
+                    </div>
+
+                    <button onClick={() => window.location.href = '/'} className="bg-white/10 hover:bg-white/20 text-white font-bold py-3 px-6 rounded-full transition-colors">
+                        Continue Browsing
+                    </button>
+                </div>
+              )}
+            </div>
+          </main>
+
+          <PlayerBar isPlaying={false} onPlayPause={() => {}} currentTrack={null} progress={0} />
+          <CartModal isOpen={cartModalOpen} onClose={() => setCartModalOpen(false)} cartItems={[]} onRemoveItem={() => {}} onUpdateQuantity={() => {}} onCheckout={() => {}} />
+        </div>
+      </div>
+    </>
+  )
 }

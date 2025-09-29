@@ -1,88 +1,44 @@
-import Head from "next/head";
-import { useState } from "react";
-import { HelpCircleIcon, BookOpen, Video, MessageCircle, Mail, Phone } from "lucide-react";
-import Sidebar from "../components/Sidebar";
-import Header from "../components/Header";
-import PlayerBar from "../components/PlayerBar";
-import { useAuth } from "../context/AuthContext";
-import CartModal from "../components/CartModal";
+import Head from 'next/head'
+import { useState } from 'react'
+import Sidebar from '../components/Sidebar'
+import Header from '../components/Header'
+import PlayerBar from '../components/PlayerBar'
+import CartModal from '../components/CartModal'
+import { Search, ChevronDown, LifeBuoy, MessageSquare, BookOpen } from 'lucide-react'
 
+const faqItems = [
+  { q: "How do I upload my beats?", a: "From the sidebar, navigate to the 'Upload' page. You can drag and drop your audio files (MP3, WAV) and cover art, fill in the beat details like title, BPM, and key, set your licensing prices, and then hit 'Publish Beat'." },
+  { q: "What are the different licensing options?", a: "We offer several license types, typically including Basic, Premium, and Exclusive. Each license grants the buyer different rights regarding usage, distribution, and ownership. You can set your own prices for each license when you upload a beat." },
+  { q: "How do I get paid for my sales?", a: "Connect your preferred payment method (like Stripe or PayPal) in your account settings. Payouts are processed automatically after a sale is confirmed. Our platform fee is deducted from the total sale amount." },
+  { q: "Can I promote my beats on ONDBeat?", a: "Yes! We offer promotional tools to help your music reach a wider audience. You can feature your tracks on the homepage, in curated playlists, and in targeted campaigns. Check the 'Promote' page for more details." },
+  { q: "How does the community feature work?", a: "The community page is a space to connect with other artists and producers. You can share your work, ask for feedback, find collaborators, and participate in discussions about music production and the industry." },
+];
+
+// --- Page Component ---
 export default function Help() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeTab, setActiveTab] = useState("faq");
-  const { openAuthModal } = useAuth();
-  const [cartItems, setCartItems] = useState(0);
   const [cartModalOpen, setCartModalOpen] = useState(false);
-  const [cartContents, setCartContents] = useState<any[]>([]);
+  const [cartContents] = useState<any[]>([]);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
-  const faqItems = [
-    {
-      question: "How do I upload my beats?",
-      answer: "Go to your creator dashboard and click the 'Upload Beat' button. You can drag and drop audio files or click to browse. Supported formats include MP3, WAV, and FLAC."
-    },
-    {
-      question: "What are the licensing options?",
-      answer: "We offer Basic, Premium, and Exclusive licenses. Basic allows non-commercial use, Premium includes commercial rights, and Exclusive gives you full ownership and removes the beat from our platform."
-    },
-    {
-      question: "How do I get paid for my beats?",
-      answer: "Payments are processed automatically when someone purchases your beat. You'll receive 70% of the sale price, and payments are sent to your registered payment method within 7-14 business days."
-    },
-    {
-      question: "Can I collaborate with other producers?",
-      answer: "Yes! Use our community features to connect with other producers. You can share beats for feedback, collaborate on projects, and even create joint releases."
-    },
-    {
-      question: "How do I promote my beats?",
-      answer: "Use our promote feature to boost visibility, share on social media, engage with the community, and consider our advertising options to reach more potential buyers."
-    }
-  ];
-
-  const helpCategories = [
-    {
-      title: "Getting Started",
-      description: "Learn the basics of ONDBeat",
-      icon: BookOpen,
-      articles: ["Creating Your Account", "Uploading Your First Beat", "Setting Up Payment"]
-    },
-    {
-      title: "Beat Production",
-      description: "Tips for creating better beats",
-      icon: HelpCircleIcon,
-      articles: ["Mixing Techniques", "Mastering Basics", "Genre-Specific Tips"]
-    },
-    {
-      title: "Marketing",
-      description: "Promote and sell your beats",
-      icon: Video,
-      articles: ["Social Media Strategy", "SEO for Producers", "Building Your Brand"]
-    },
-    {
-      title: "Technical Support",
-      description: "Get help with technical issues",
-      icon: MessageCircle,
-      articles: ["Audio Quality Issues", "Upload Problems", "Payment Issues"]
-    }
-  ];
+  const AccordionItem = ({ item, index, isActive, onToggle }) => (
+    <div className="border-b border-neutral-800">
+        <button onClick={() => onToggle(index)} className="w-full flex justify-between items-center text-left py-5 px-2">
+            <span className={`text-lg font-medium ${isActive ? 'text-green-400' : 'text-white'}`}>{item.q}</span>
+            <ChevronDown className={`w-6 h-6 transform transition-transform ${isActive ? 'rotate-180 text-green-400' : 'text-gray-400'}`} />
+        </button>
+        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isActive ? 'max-h-96' : 'max-h-0'}`}>
+            <p className="pb-5 px-2 text-gray-300">{item.a}</p>
+        </div>
+    </div>
+  );
 
   return (
     <>
       <Head>
-        <title>Help & Tips - ONDBeat</title>
-        <meta name="description" content="Get help, tips, and support for using ONDBeat platform" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <title>Help Center - ONDBeat</title>
       </Head>
-
-      <CartModal 
-        isOpen={cartModalOpen} 
-        onClose={() => setCartModalOpen(false)}
-        cartItems={cartContents}
-        onRemoveItem={() => {}}
-        onUpdateQuantity={() => {}}
-        onCheckout={() => {}}
-      />
 
       <div className="min-h-screen bg-black text-white">
         <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
@@ -93,162 +49,65 @@ export default function Help() {
             onSearchChange={setSearchQuery}
             onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
             onCartClick={() => setCartModalOpen(true)}
-            cartItems={cartItems}
+            cartItems={cartContents.length}
           />
 
-          <main className="p-6">
-            <div className="max-w-6xl mx-auto">
-              {/* Page Header */}
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2">Help & Tips</h1>
-                <p className="text-gray-400">Get support and learn how to make the most of ONDBeat</p>
-              </div>
-
-              {/* Contact Support */}
-              <div className="bg-gradient-to-r from-green-500 to-blue-500 rounded-lg p-6 mb-8">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-xl font-bold mb-2">Need Immediate Help?</h2>
-                    <p className="text-gray-100">Contact our support team for personalized assistance</p>
-                  </div>
-                  <div className="flex gap-3">
-                    <button className="bg-white text-black px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors flex items-center gap-2">
-                      <MessageCircle className="w-5 h-5" />
-                      Live Chat
-                    </button>
-                    <button className="bg-black/20 text-white px-4 py-2 rounded-lg font-semibold hover:bg-black/30 transition-colors flex items-center gap-2">
-                      <Mail className="w-5 h-5" />
-                      Email
-                    </button>
-                  </div>
+          <main className="p-4 md:p-8 bg-gradient-to-b from-neutral-900 to-[#121212]">
+             {/* --- Hero Section --- */}
+            <div className="text-center py-12 md:py-20">
+                <LifeBuoy size={48} className="mx-auto text-green-400 mb-4" />
+                <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3">How can we help?</h1>
+                <p className="text-gray-400 text-lg mb-8">Search our knowledge base or contact us.</p>
+                <div className="max-w-xl mx-auto relative">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input 
+                        type="text"
+                        placeholder="Search for topics, questions..."
+                        className="w-full bg-neutral-800 border border-neutral-700 rounded-full py-4 pl-12 pr-4 text-white placeholder:text-gray-500 focus:ring-2 focus:ring-green-500 focus:outline-none transition-shadow"
+                    />
                 </div>
-              </div>
+            </div>
 
-              {/* Tabs */}
-              <div className="flex gap-2 mb-8">
-                <button 
-                  className={`px-4 py-2 rounded-lg transition-colors ${activeTab === "faq" ? "bg-green-500 text-black" : "bg-neutral-800 text-white"}`}
-                  onClick={() => setActiveTab("faq")}
-                >
-                  FAQ
-                </button>
-                <button 
-                  className={`px-4 py-2 rounded-lg transition-colors ${activeTab === "guides" ? "bg-green-500 text-black" : "bg-neutral-800 text-white"}`}
-                  onClick={() => setActiveTab("guides")}
-                >
-                  Guides
-                </button>
-                <button 
-                  className={`px-4 py-2 rounded-lg transition-colors ${activeTab === "contact" ? "bg-green-500 text-black" : "bg-neutral-800 text-white"}`}
-                  onClick={() => setActiveTab("contact")}
-                >
-                  Contact
-                </button>
-              </div>
-
-              {/* FAQ Section */}
-              {activeTab === "faq" && (
-                <div className="space-y-4">
-                  <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
-                  {faqItems.map((item, index) => (
-                    <div key={index} className="bg-neutral-900 rounded-lg p-6">
-                      <h3 className="text-lg font-semibold mb-3">{item.question}</h3>
-                      <p className="text-gray-300">{item.answer}</p>
+            <div className="max-w-4xl mx-auto">
+                 {/* --- FAQ Section --- */}
+                 <div className="mb-16">
+                    <h2 className="text-3xl font-bold text-white mb-6 text-center">Frequently Asked Questions</h2>
+                    <div className="bg-[#181818] p-4 md:p-6 rounded-lg">
+                       {faqItems.map((item, index) => (
+                           <AccordionItem 
+                               key={index} 
+                               item={item} 
+                               index={index} 
+                               isActive={activeIndex === index}
+                               onToggle={(idx) => setActiveIndex(activeIndex === idx ? null : idx)}
+                           />
+                       ))}
                     </div>
-                  ))}
-                </div>
-              )}
+                 </div>
 
-              {/* Guides Section */}
-              {activeTab === "guides" && (
-                <div>
-                  <h2 className="text-2xl font-bold mb-6">Help Categories</h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {helpCategories.map((category, index) => {
-                      const IconComponent = category.icon;
-                      return (
-                        <div key={index} className="bg-neutral-900 rounded-lg p-6">
-                          <div className="flex items-center gap-3 mb-4">
-                            <IconComponent className="w-6 h-6 text-green-400" />
-                            <h3 className="text-lg font-semibold">{category.title}</h3>
-                          </div>
-                          <p className="text-gray-400 mb-4">{category.description}</p>
-                          <div className="space-y-2">
-                            {category.articles.map((article, articleIndex) => (
-                              <div key={articleIndex} className="text-sm text-gray-300 hover:text-white cursor-pointer transition-colors">
-                                • {article}
-                              </div>
-                            ))}
-                          </div>
+                {/* --- Contact Section --- */}
+                <div className="text-center">
+                     <h2 className="text-3xl font-bold text-white mb-6">Still need help?</h2>
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                        <div className="bg-[#181818] p-6 rounded-lg text-left hover:bg-[#282828] transition-colors cursor-pointer">
+                            <MessageSquare className="text-green-400 mb-3" size={28} />
+                            <h3 className="text-xl font-bold text-white mb-1">Contact Support</h3>
+                            <p className="text-gray-400">Get in touch with our team directly for personalized assistance.</p>
                         </div>
-                      );
-                    })}
-                  </div>
+                         <div className="bg-[#181818] p-6 rounded-lg text-left hover:bg-[#282828] transition-colors cursor-pointer">
+                            <BookOpen className="text-green-400 mb-3" size={28} />
+                            <h3 className="text-xl font-bold text-white mb-1">Platform Guides</h3>
+                            <p className="text-gray-400">Browse our in-depth guides on using ONDBeat effectively.</p>
+                        </div>
+                     </div>
                 </div>
-              )}
-
-              {/* Contact Section */}
-              {activeTab === "contact" && (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div className="bg-neutral-900 rounded-lg p-6">
-                    <h2 className="text-xl font-bold mb-4">Get in Touch</h2>
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <Mail className="w-5 h-5 text-green-400" />
-                        <div>
-                          <p className="font-semibold">Email Support</p>
-                          <p className="text-gray-400 text-sm">support@ondbeat.com</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <MessageCircle className="w-5 h-5 text-green-400" />
-                        <div>
-                          <p className="font-semibold">Live Chat</p>
-                          <p className="text-gray-400 text-sm">Available 24/7</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <Phone className="w-5 h-5 text-green-400" />
-                        <div>
-                          <p className="font-semibold">Phone Support</p>
-                          <p className="text-gray-400 text-sm">+1 (555) 123-4567</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-neutral-900 rounded-lg p-6">
-                    <h2 className="text-xl font-bold mb-4">Send us a Message</h2>
-                    <form className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Subject</label>
-                        <input 
-                          type="text" 
-                          className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500"
-                          placeholder="What can we help you with?"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Message</label>
-                        <textarea 
-                          rows={4}
-                          className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-green-500"
-                          placeholder="Describe your issue or question..."
-                        />
-                      </div>
-                      <button className="w-full bg-green-500 hover:bg-green-600 text-black font-semibold py-3 rounded-lg transition-colors">
-                        Send Message
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              )}
             </div>
           </main>
 
-          <PlayerBar />
+          <PlayerBar isPlaying={false} onPlayPause={() => {}} currentTrack={null} progress={0} />
+          <CartModal isOpen={cartModalOpen} onClose={() => setCartModalOpen(false)} cartItems={cartContents} onRemoveItem={() => {}} onUpdateQuantity={() => {}} onCheckout={() => {}} />
         </div>
       </div>
     </>
-  );
+  )
 }

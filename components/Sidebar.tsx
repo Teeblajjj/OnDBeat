@@ -1,66 +1,97 @@
-import Link from "next/link";
-import { HomeIcon, Users, Music, BarChart2Icon, AudioWaveform, HelpCircleIcon, ShoppingBagIcon, Rocket } from "lucide-react";
+import Link from 'next/link';
+import { Home, Search, Library, Plus, ArrowRight, ListMusic, History, Rocket, ShoppingCart, LayoutDashboard } from 'lucide-react';
+import { useRouter } from 'next/router';
 
-interface SidebarProps {
-  mobileMenuOpen: boolean;
-  onToggleMobileMenu: () => void;
-}
+const mainNavLinks = [
+    { icon: Home, label: "Home", href: "/" },
+    { icon: Search, label: "Store", href: "/store" },
+    { icon: Rocket, label: "Promote", href: "/promote" },
+];
 
-export default function Sidebar({ mobileMenuOpen, onToggleMobileMenu }: SidebarProps) {
-  const sidebarItems = [
-    { label: "Home", icon: HomeIcon, href: "/" },
-    { label: "Store", icon: Music, href: "/store" },
-    { label: "Community", icon: Users, href: "/community" },
-    { label: "Analytics", icon: BarChart2Icon, href: "/analytics" },
-    { label: "Audio Tools", icon: AudioWaveform, href: "/tools" },
-    { label: "Help & Tips", icon: HelpCircleIcon, href: "/help" },
-    { label: "Promote", icon: Rocket, href: "/promote" },
-  ];
+const userLibraryLinks = [
+    { icon: Library, label: "Your Library" },
+    { icon: Plus, label: "Create Playlist" },
+    { icon: ArrowRight, label: "Liked Songs" },
+];
 
-  return (
-    <>
-      {/* Mobile Sidebar Overlay */}
-      {mobileMenuOpen && (
-        <div className="fixed inset-0 bg-black/80 z-50 md:hidden" onClick={onToggleMobileMenu}>
-          <div className="w-64 h-full bg-neutral-950 p-6" onClick={(e) => e.stopPropagation()}>
-            <div className="flex justify-between items-center mb-8">
-              <h1 className="text-green-500 text-2xl font-bold">ONDBeat</h1>
-              <button onClick={onToggleMobileMenu} className="text-white">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+const userPlaylists = [
+   { name: "My First EP", type: "playlist" },
+   { name: "Recently Purchased", type: "playlist" },
+   { name: "Trap Bangers", type: "playlist" },
+   { name: "Lofi Beats", type: "playlist" },
+];
+
+const NavLink = ({ icon: Icon, label, href }) => {
+    const router = useRouter();
+    const active = router.pathname === href;
+
+    return (
+        <Link href={href} className={`flex items-center gap-4 px-6 py-2 text-md font-bold transition-colors ${active ? 'text-white' : 'text-neutral-400 hover:text-white'}`}>
+            <Icon size={28} />
+            <span>{label}</span>
+        </Link>
+    );
+};
+
+const Sidebar = ({ mobileMenuOpen, onToggleMobileMenu }) => {
+    const router = useRouter();
+    const isDashboard = router.pathname.startsWith('/user');
+
+    return (
+        <aside className={`fixed top-0 left-0 h-full bg-black text-white w-56 transform ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform z-40`}>
+            <div className="py-6">
+                <div className="px-6 mb-8">
+                    <h1 className="text-2xl font-bold text-green-500">ONDBeat</h1>
+                </div>
+                <nav className="flex flex-col gap-2">
+                    {mainNavLinks.map(link => <NavLink key={link.label} {...link} />)}
+                     {isDashboard && <NavLink icon={LayoutDashboard} label="Dashboard" href="/user/dashboard" />}
+                </nav>
             </div>
-            <nav className="space-y-4">
-              {sidebarItems.map((item, i) => {
-                const IconComponent = item.icon;
-                return (
-                  <Link key={i} href={item.href} className="flex items-center space-x-2 hover:text-green-400 transition-colors">
-                    <IconComponent className="w-5 h-5" />
-                    <span>{item.label}</span>
-                  </Link>
-                );
-              })}
-            </nav>
-          </div>
-        </div>
-      )}
 
-      {/* Desktop Sidebar */}
-      <aside className="w-56 bg-neutral-950 p-6 hidden md:flex flex-col fixed h-screen">
-        <h1 className="text-green-500 text-2xl font-bold mb-8">ONDBeat</h1>
-        <nav className="space-y-4">
-          {sidebarItems.map((item, i) => {
-            const IconComponent = item.icon;
-            return (
-              <Link key={i} href={item.href} className="flex items-center space-x-2 hover:text-green-400 transition-colors">
-                <IconComponent className="w-5 h-5" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-      </aside>
-    </>
-  );
-}
+            <div className="h-[calc(100%-14rem)] flex flex-col">
+                 <div className="px-6 mt-6">
+                    <div className="flex items-center justify-between text-neutral-400 mb-4">
+                        <div className="flex items-center gap-2 font-bold cursor-pointer hover:text-white">
+                            <Library />
+                            <span>Your Library</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Plus className="cursor-pointer hover:text-white" />
+                            <ArrowRight className="cursor-pointer hover:text-white" />
+                        </div>
+                    </div>
+
+                    <div className="flex gap-2 mb-4">
+                        <button className="bg-neutral-800 text-white text-sm font-semibold px-3 py-1 rounded-full">Playlists</button>
+                        <button className="bg-neutral-800 text-white text-sm font-semibold px-3 py-1 rounded-full">Artists</button>
+                    </div>
+                </div>
+
+                <div className="flex-1 overflow-y-auto px-6 scrollbar-thin scrollbar-thumb-neutral-700">
+                    <div className="flex items-center justify-between text-neutral-400 mb-4">
+                        <Search size={20}/>
+                        <div className="flex items-center gap-1 text-sm font-semibold">
+                            <span>Recents</span>
+                            <ListMusic size={16}/>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col gap-4">
+                        {userPlaylists.map(item => (
+                            <div key={item.name} className="flex items-center gap-3 cursor-pointer hover:bg-neutral-800/50 p-1 rounded">
+                                <div className="w-12 h-12 bg-neutral-800 rounded-md"></div>
+                                <div>
+                                    <p className="font-semibold text-white">{item.name}</p>
+                                    <p className="text-sm text-neutral-400">Playlist</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        </aside>
+    );
+};
+
+export default Sidebar;

@@ -1,4 +1,4 @@
-import { Play, Pause, Heart, MessageCircle, Share2, ShoppingCart } from "lucide-react";
+import { Play, Pause, Heart, ShoppingCart } from 'lucide-react';
 
 interface Beat {
   id: number;
@@ -6,132 +6,61 @@ interface Beat {
   producer: string;
   price: number;
   cover: string;
-  time: string;
-  likes: number;
-  comments: number;
-  shares: number;
-  bpm: number;
-  description: string;
-  licenses: Array<{
-    name: string;
-    price: number;
-    description: string;
-    features: string[];
-    limitations: string[];
-  }>;
+  // Other beat properties...
 }
 
 interface BeatCardProps {
   beat: Beat;
-  currentTrack: number | null;
+  isCurrent: boolean;
   isPlaying: boolean;
-  onTogglePlay: (id: number) => void;
-  onLike: (id: number) => void;
-  onComment: (id: number) => void;
-  onShare: (id: number) => void;
+  onPlay: (id: number) => void;
   onAddToCart: (beat: Beat) => void;
-  onBeatClick: (beat: Beat) => void;
+  onClick: (beat: Beat) => void;
 }
 
-export default function BeatCard({ 
-  beat, 
-  currentTrack, 
-  isPlaying, 
-  onTogglePlay, 
-  onLike, 
-  onComment, 
-  onShare, 
-  onAddToCart,
-  onBeatClick 
-}: BeatCardProps) {
-  const isCurrentTrack = currentTrack === beat.id;
-  const isCurrentlyPlaying = isCurrentTrack && isPlaying;
+export default function BeatCard({ beat, isCurrent, isPlaying, onPlay, onAddToCart, onClick }: BeatCardProps) {
+
+  const handlePlayPause = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click event
+    onPlay(beat.id);
+  };
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onAddToCart(beat);
+  };
 
   return (
     <div 
-      className="bg-neutral-900 rounded-lg p-4 mb-4 hover:shadow-lg hover:shadow-green-500/10 transition cursor-pointer"
-      onClick={() => onBeatClick(beat)}
+        className="bg-[#181818] p-4 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer group" 
+        onClick={() => onClick(beat)}
     >
-      <div className="flex gap-4">
-        {/* Cover Image */}
-        <div className="relative w-32 h-32 flex-shrink-0">
-          <img 
-            src={beat.cover} 
-            alt={beat.title}
-            className="w-full h-full object-cover rounded-lg"
-          />
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onTogglePlay(beat.id);
-            }}
-            className="absolute inset-0 flex items-center justify-center bg-black/50 hover:bg-black/70 rounded-lg opacity-0 hover:opacity-100 transition-opacity"
-          >
-            {isCurrentlyPlaying ? (
-              <Pause className="w-8 h-8 text-green-500" />
-            ) : (
-              <Play className="w-8 h-8 text-green-500 ml-1" />
-            )}
-          </button>
-        </div>
-
-        {/* Beat Info */}
-        <div className="flex-1">
-          <div className="flex justify-between items-start mb-2">
-            <div>
-              <h3 className="font-bold text-lg leading-tight">{beat.title}</h3>
-              <p className="text-sm text-gray-400 mt-1">by {beat.producer}</p>
-              <p className="text-xs text-gray-500 mt-1">Released on {beat.time}</p>
-              <p className="text-xs text-gray-400 mt-1">{beat.bpm} BPM</p>
-            </div>
-            {beat.id === 1 && <span className="text-xs bg-gray-800 px-2 py-1 rounded">AD</span>}
-          </div>
-
-          {/* Price and Actions */}
-          <div className="flex items-center justify-between mt-3">
-            <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                onAddToCart(beat);
-              }}
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-full font-bold text-sm text-white transition-colors"
-            >
-              ${beat.price}.00
-            </button>
+        <div className="relative mb-4">
+            <img src={beat.cover} alt={beat.title} className="w-full h-auto aspect-square object-cover rounded-md" />
             
-            <div className="flex items-center space-x-4" onClick={(e) => e.stopPropagation()}>
-              <button 
-                onClick={() => onLike(beat.id)}
-                className="flex items-center gap-1 hover:text-red-500 transition-colors"
-              >
-                <Heart className="w-5 h-5" />
-                <span>{beat.likes}</span>
-              </button>
-              <button 
-                onClick={() => onComment(beat.id)}
-                className="flex items-center gap-1 hover:text-green-400 transition-colors"
-              >
-                <MessageCircle className="w-5 h-5" />
-                <span>{beat.comments}</span>
-              </button>
-              <button 
-                onClick={() => onShare(beat.id)}
-                className="flex items-center gap-1 hover:text-blue-400 transition-colors"
-              >
-                <Share2 className="w-5 h-5" />
-                <span>{beat.shares}</span>
-              </button>
-              <ShoppingCart 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAddToCart(beat);
-                }}
-                className="w-5 h-5 cursor-pointer hover:text-green-400 transition-colors" 
-              />
-            </div>
-          </div>
+            <button 
+                onClick={handlePlayPause}
+                className={`absolute bottom-2 right-2 w-12 h-12 bg-green-500 text-black rounded-full flex items-center justify-center shadow-lg transform transition-all duration-200 ease-in-out 
+                    ${isCurrent ? 'opacity-100 scale-100' : 'opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100'}
+                `}
+            >
+                {isCurrent && isPlaying ? <Pause size={24} fill="black" /> : <Play size={24} fill="black" className="ml-1" />}
+            </button>
         </div>
-      </div>
+
+        <div className="flex items-start justify-between gap-4">
+            <div>
+                <h3 className="text-white font-bold truncate transition-colors group-hover:text-green-400">{beat.title}</h3>
+                <p className="text-gray-400 text-sm truncate">{beat.producer}</p>
+            </div>
+
+            <button 
+                onClick={handleAddToCart}
+                className="flex-shrink-0 bg-white/5 border border-white/10 text-white font-bold text-sm px-4 py-2 rounded-full hover:bg-white/10 hover:border-white/20 transition-all"
+            >
+                ${beat.price}
+            </button>
+        </div>
     </div>
   );
 }
