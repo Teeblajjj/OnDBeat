@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { X, Play, Pause, Check, ShoppingCart, Download, Info } from 'lucide-react';
 
 interface Beat {
@@ -15,16 +16,19 @@ interface BeatModalProps {
   isOpen: boolean;
   beat: Beat | null;
   onClose: () => void;
-  // Add other props like onAddToCart, onPlay, etc. as needed
+  selectedLicense: number | null;
+  onLicenseSelect: (index: number) => void;
+  onAddToCart: () => void;
+  onBuyNow: () => void;
 }
 
-export default function BeatModal({ isOpen, beat, onClose }: BeatModalProps) {
-  const [selectedLicense, setSelectedLicense] = useState(0);
+export default function BeatModal({ isOpen, beat, onClose, selectedLicense, onLicenseSelect, onAddToCart, onBuyNow }: BeatModalProps) {
   const [isPlaying, setIsPlaying] = useState(false);
 
   if (!isOpen || !beat) return null;
 
-  const activeLicense = beat.licenses[selectedLicense];
+  const activeLicenseIndex = selectedLicense ?? 0;
+  const activeLicense = beat.licenses[activeLicenseIndex];
 
   return (
     <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
@@ -62,8 +66,8 @@ export default function BeatModal({ isOpen, beat, onClose }: BeatModalProps) {
                 {beat.licenses.map((license, index) => (
                     <div 
                         key={index}
-                        onClick={() => setSelectedLicense(index)}
-                        className={`p-4 rounded-lg cursor-pointer transition-all border-2 ${selectedLicense === index ? 'bg-green-500/10 border-green-500' : 'bg-neutral-800/60 border-transparent hover:bg-neutral-700/80'}`}>
+                        onClick={() => onLicenseSelect(index)}
+                        className={`p-4 rounded-lg cursor-pointer transition-all border-2 ${activeLicenseIndex === index ? 'bg-green-500/10 border-green-500' : 'bg-neutral-800/60 border-transparent hover:bg-neutral-700/80'}`}>
                         <div className="flex justify-between items-center">
                             <span className="font-bold text-lg text-white">{license.name} License</span>
                             <span className="font-extrabold text-2xl text-white">${license.price}</span>
@@ -84,7 +88,7 @@ export default function BeatModal({ isOpen, beat, onClose }: BeatModalProps) {
                 </ul>
             </div>
 
-            <button className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-4 rounded-full transition-colors flex items-center justify-center gap-2 text-lg">
+            <button onClick={onAddToCart} className="w-full bg-green-500 hover:bg-green-600 text-black font-bold py-4 rounded-full transition-colors flex items-center justify-center gap-2 text-lg">
                 <ShoppingCart size={20} />
                 Add to Cart - ${activeLicense.price}
             </button>
