@@ -2,12 +2,12 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { useState } from "react";
-import { Play, Pause, Heart, Share2, MoreVertical, MessageSquare, ChevronLeft, ChevronRight, ListMusic, Grid } from "lucide-react";
+import { Play, Pause, Heart, Share2, MoreVertical, MessageSquare, ChevronLeft, ChevronRight, Home, ListMusic, Grid } from "lucide-react";
 import PlayerBar from "../../components/PlayerBar";
 import BeatModal from "../../components/BeatModal";
 import CartModal from "../../components/CartModal";
 
-// NOTE: This is a temporary data structure. We will fetch this from a database later.
+// NOTE: This is a temporary data structure.
 const collectionDetails = {
     id: 1,
     name: "(70% OFF) TOP 7 KANYE BEATS WITH BEAT...",
@@ -21,13 +21,13 @@ const collectionDetails = {
     comments: 0,
     shares: 0,
     tracks: [
-        { id: 1, title: "FALL IN LOVE [KANYE x SAMPLE]", bpm: 144, tags: ["#playboi carti", "#kanye west"], price: 59.90, isFree: true, cover: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80" },
-        { id: 2, title: "HIGHS & LOWS [KANYE x TRAVIS SCOTT]", bpm: 165, tags: ["#kanye west type be...", "#travis scott"], price: 59.90, isFree: false, cover: "https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=80" },
-        { id: 3, title: "MANY TIMES [BUY 2 GET 1 FREE] $40 Unlimited", bpm: 125, tags: ["#ty dolla $ign", "#kanye west"], price: 59.90, isFree: true, cover: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80" },
-        { id: 4, title: "GIVE IT ALL [KANYE x CARTI]", bpm: 122, tags: ["#beat switch", "#playboi carti"], price: 59.90, isFree: true, cover: "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=400&q=80" },
-        { id: 5, title: "SEE THE LIGHT [SAMPLE]", bpm: 154, tags: ["#playboi carti", "#the weeknd"], price: 59.90, isFree: false, cover: "https://images.unsplash.com/photo-1458560871784-56d23406c791?w=400&q=80" },
-        { id: 6, title: "ALL FOR YOU [KANYE x CARTI]", bpm: 155, tags: ["#playboi carti", "#experimental"], price: 59.90, isFree: false, cover: "https://images.unsplash.com/photo-1471478331149-c72f17e33c73?w=400&q=80" },
-        { id: 7, title: "CARRY YOU HOME [KANYE x CINEMATIC]", bpm: 90, tags: ["#james blake", "#kanye west"], price: 59.90, isFree: false, cover: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80" },
+        { id: 1, title: "FALL IN LOVE [KANYE x SAMPLE]", bpm: 144, tags: ["#playboi carti", "#kanye west"], price: 59.90, isFree: true, cover: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80", licenses: [] },
+        { id: 2, title: "HIGHS & LOWS [KANYE x TRAVIS SCOTT]", bpm: 165, tags: ["#kanye west type be...", "#travis scott"], price: 59.90, isFree: false, cover: "https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=80", licenses: [] },
+        { id: 3, title: "MANY TIMES [BUY 2 GET 1 FREE] $40 Unlimited", bpm: 125, tags: ["#ty dolla $ign", "#kanye west"], price: 59.90, isFree: true, cover: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80", licenses: [] },
+        { id: 4, title: "GIVE IT ALL [KANYE x CARTI]", bpm: 122, tags: ["#beat switch", "#playboi carti"], price: 59.90, isFree: true, cover: "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=400&q=80", licenses: [] },
+        { id: 5, title: "SEE THE LIGHT [SAMPLE]", bpm: 154, tags: ["#playboi carti", "#the weeknd"], price: 59.90, isFree: false, cover: "https://images.unsplash.com/photo-1458560871784-56d23406c791?w=400&q=80", licenses: [] },
+        { id: 6, title: "ALL FOR YOU [KANYE x CARTI]", bpm: 155, tags: ["#playboi carti", "#experimental"], price: 59.90, isFree: false, cover: "https://images.unsplash.com/photo-1471478331149-c72f17e33c73?w=400&q=80", licenses: [] },
+        { id: 7, title: "CARRY YOU HOME [KANYE x CINEMATIC]", bpm: 90, tags: ["#james blake", "#kanye west"], price: 59.90, isFree: false, cover: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80", licenses: [] },
     ]
 }
 
@@ -41,28 +41,52 @@ const relatedCollections = [
 export default function CollectionDetailPage() {
   const router = useRouter();
   const { id } = router.query;
-  const collection = collectionDetails; // Fetch collection by id in a real app
+  const collection = collectionDetails;
   
   const [currentTrack, setCurrentTrack] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBeatModalOpen, setBeatModalOpen] = useState(false);
   const [isCartModalOpen, setCartModalOpen] = useState(false);
   const [selectedBeat, setSelectedBeat] = useState(null);
+  const [selectedLicense, setSelectedLicense] = useState(0);
   const [cartContents, setCartContents] = useState([]);
 
   const togglePlay = (trackId) => {
-    if (currentTrack === trackId) {
-      setIsPlaying(!isPlaying);
-    } else {
-      setCurrentTrack(trackId);
-      setIsPlaying(true);
-    }
+    if (currentTrack === trackId) setIsPlaying(!isPlaying);
+    else { setCurrentTrack(trackId); setIsPlaying(true); }
   };
 
   const openBeatModal = (beat) => {
     setSelectedBeat(beat);
     setBeatModalOpen(true);
   };
+  
+  const closeBeatModal = () => {
+      setBeatModalOpen(false);
+      setSelectedBeat(null);
+      setSelectedLicense(0);
+  }
+
+  const addToCart = () => {
+    if (!selectedBeat) return;
+    const item = { beat: selectedBeat, licenseIndex: selectedLicense, quantity: 1 };
+    setCartContents(prev => [...prev, item]);
+    closeBeatModal();
+    setCartModalOpen(true);
+  };
+
+  const handleBuyNow = () => {
+      addToCart();
+      router.push("/checkout");
+  }
+
+  const handleRemoveItem = (beatId) => {
+      setCartContents(prev => prev.filter(item => item.beat.id !== beatId));
+  }
+
+  const handleUpdateQuantity = (beatId, quantity) => {
+      setCartContents(prev => prev.map(item => item.beat.id === beatId ? { ...item, quantity } : item));
+  }
 
   return (
     <>
@@ -70,11 +94,19 @@ export default function CollectionDetailPage() {
         <title>{collection.name} by {collection.creator} | ONDBeat</title>
       </Head>
       <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] to-[#121212] text-white p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
-            <button onClick={() => router.back()} className="flex items-center gap-2 text-neutral-300 hover:text-white mb-8">
-                <ChevronLeft size={20} />
-                Back
-            </button>
+        <div className="max-w-7xl mx-auto pb-24"> {/* Padding bottom for player */}
+            <div className="flex items-center gap-4 text-neutral-300 mb-8">
+                <Link href="/" legacyBehavior>
+                    <a className="flex items-center gap-2 hover:text-white">
+                        <Home size={20} />
+                    </a>
+                </Link>
+                /
+                <button onClick={() => router.back()} className="flex items-center gap-2 hover:text-white">
+                    <ChevronLeft size={20} />
+                    Back
+                </button>
+            </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column */}
             <div className="lg:col-span-1 space-y-6 lg:sticky top-8 self-start">
@@ -115,8 +147,8 @@ export default function CollectionDetailPage() {
                 <div className="space-y-2">
                     {collection.tracks.map((track, index) => (
                         <div key={track.id} className="flex items-center gap-4 p-2 rounded-lg hover:bg-neutral-800/80 transition-colors group">
-                            <button onClick={() => togglePlay(track.id)} className="w-12 h-12 flex-shrink-0 bg-cover bg-center rounded-md flex items-center justify-center" style={{backgroundImage: `url(${track.cover})`}}>
-                               <div className="w-full h-full bg-black/50 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => togglePlay(track.id)} className="w-12 h-12 flex-shrink-0 bg-cover bg-center rounded-md flex items-center justify-center relative" style={{backgroundImage: `url(${track.cover})`}}>
+                               <div className="absolute inset-0 w-full h-full bg-black/50 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
                                  {isPlaying && currentTrack === track.id ? <Pause/> : <Play />}
                                </div>
                             </button>
@@ -163,9 +195,9 @@ export default function CollectionDetailPage() {
         </div>
       </div>
     
-    {/* <PlayerBar isPlaying={isPlaying} onPlayPause={() => setIsPlaying(!isPlaying)} currentTrack={collection.tracks.find(t => t.id === currentTrack)} progress={30} />
-    <BeatModal isOpen={isBeatModalOpen} onClose={() => setBeatModalOpen(false)} beat={selectedBeat} onAddToCart={() => {}} onBuyNow={() => {}} />
-    <CartModal isOpen={isCartModalOpen} onClose={() => setCartModalOpen(false)} cartItems={cartContents} onCheckout={() => {}} /> */}
+    <PlayerBar isPlaying={isPlaying} onPlayPause={() => setIsPlaying(!isPlaying)} currentTrack={collection.tracks.find(t => t.id === currentTrack)} progress={30} />
+    <BeatModal isOpen={isBeatModalOpen} onClose={closeBeatModal} beat={selectedBeat} selectedLicense={selectedLicense} onLicenseSelect={setSelectedLicense} onAddToCart={addToCart} onBuyNow={handleBuyNow} />
+    <CartModal isOpen={isCartModalOpen} onClose={() => setCartModalOpen(false)} cartItems={cartContents} onRemoveItem={handleRemoveItem} onUpdateQuantity={handleUpdateQuantity} onCheckout={() => router.push("/checkout")} />
     </>
   );
 }

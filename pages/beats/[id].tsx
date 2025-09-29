@@ -2,13 +2,13 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { useState } from "react";
-import { Play, Pause, Heart, Share2, Download, MessageSquare, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { Play, Pause, Heart, Share2, Download, MessageSquare, ChevronLeft, ChevronRight, Home, Star } from "lucide-react";
 import PlayerBar from "../../components/PlayerBar";
 import BeatModal from "../../components/BeatModal";
 import CartModal from "../../components/CartModal";
 
 
-// NOTE: This is a temporary data structure. We will fetch this from a database later.
+// NOTE: This is a temporary data structure.
 const sampleBeat = {
   id: 1,
   title: "Renfe",
@@ -48,12 +48,38 @@ const relatedTracks = [
 export default function BeatDetailPage() {
   const router = useRouter();
   const { id } = router.query;
-  const beat = sampleBeat; // In a real app, you'd fetch the beat by id
+  const beat = sampleBeat;
 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isBeatModalOpen, setBeatModalOpen] = useState(false);
   const [isCartModalOpen, setCartModalOpen] = useState(false);
+  const [selectedLicense, setSelectedLicense] = useState(0);
   const [cartContents, setCartContents] = useState([]);
+
+  const closeBeatModal = () => {
+      setBeatModalOpen(false);
+      setSelectedLicense(0);
+  }
+
+  const addToCart = () => {
+    const item = { beat, licenseIndex: selectedLicense, quantity: 1 };
+    setCartContents(prev => [...prev, item]);
+    closeBeatModal();
+    setCartModalOpen(true);
+  };
+
+  const handleBuyNow = () => {
+      addToCart();
+      router.push("/checkout");
+  }
+  
+    const handleRemoveItem = (beatId) => {
+      setCartContents(prev => prev.filter(item => item.beat.id !== beatId));
+  }
+
+  const handleUpdateQuantity = (beatId, quantity) => {
+      setCartContents(prev => prev.map(item => item.beat.id === beatId ? { ...item, quantity } : item));
+  }
 
 
   return (
@@ -62,13 +88,21 @@ export default function BeatDetailPage() {
         <title>{beat.title} - {beat.producer} | ONDBeat</title>
       </Head>
       <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] to-[#121212] text-white p-4 md:p-8">
-        <div className="max-w-7xl mx-auto">
-            <button onClick={() => router.back()} className="flex items-center gap-2 text-neutral-300 hover:text-white mb-8">
-                <ChevronLeft size={20} />
-                Back
-            </button>
+        <div className="max-w-7xl mx-auto pb-24"> {/* Padding bottom for player */}
+             <div className="flex items-center gap-4 text-neutral-300 mb-8">
+                <Link href="/" legacyBehavior>
+                    <a className="flex items-center gap-2 hover:text-white">
+                        <Home size={20} />
+                    </a>
+                </Link>
+                /
+                <button onClick={() => router.back()} className="flex items-center gap-2 hover:text-white">
+                    <ChevronLeft size={20} />
+                    Back
+                </button>
+            </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column: Beat Info & Art */}
+            {/* Left Column */}
             <div className="lg:col-span-1 space-y-6 lg:sticky top-8 self-start">
               <div className="relative">
                 <img src={beat.cover} alt="Beat cover" className="w-full rounded-xl shadow-lg" />
@@ -103,7 +137,7 @@ export default function BeatDetailPage() {
                  <button className="w-full text-left p-3 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-sm text-neutral-400">Report Track</button>
             </div>
 
-            {/* Right Column: Licensing & More */}
+            {/* Right Column */}
             <div className="lg:col-span-2 space-y-8">
               {/* Licensing */}
               <div className="bg-[#1a1a1a] p-6 rounded-xl border border-neutral-800">
@@ -111,13 +145,13 @@ export default function BeatDetailPage() {
                     <h2 className="text-2xl font-bold">Licensing</h2>
                     <div className="flex items-center gap-2">
                         <p className="text-lg font-bold">${beat.price}</p>
-                        <button onClick={() => setBeatModalOpen(true)} className="bg-neutral-700 text-white font-bold py-2 px-6 rounded-lg hover:bg-neutral-600">Add to Cart</button>
-                        <button onClick={() => setBeatModalOpen(true)} className="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700">Buy now</button>
+                        <button onClick={addToCart} className="bg-neutral-700 text-white font-bold py-2 px-6 rounded-lg hover:bg-neutral-600">Add to Cart</button>
+                        <button onClick={handleBuyNow} className="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700">Buy now</button>
                     </div>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {beat.licenses.map((license, index) => (
-                          <div key={license.name} onClick={() => setBeatModalOpen(true)} className={`p-4 rounded-lg border-2 cursor-pointer ${index === 0 ? 'border-blue-500 bg-neutral-800' : 'border-transparent bg-neutral-700/50 hover:bg-neutral-700'}`}>
+                          <div key={license.name} onClick={() => setSelectedLicense(index)} className={`p-4 rounded-lg border-2 cursor-pointer ${selectedLicense === index ? 'border-blue-500 bg-neutral-800' : 'border-transparent bg-neutral-700/50 hover:bg-neutral-700'}`}>
                               <h3 className="font-bold text-lg">{license.name}</h3>
                               <p className="text-neutral-400 text-sm">{license.price > 0 ? `$${license.price}`: "Negotiate"}</p>
                           </div>
@@ -196,9 +230,9 @@ export default function BeatDetailPage() {
         </div>
       </div>
 
-    {/* <PlayerBar isPlaying={isPlaying} onPlayPause={() => setIsPlaying(!isPlaying)} currentTrack={beat} progress={30} />
-    <BeatModal isOpen={isBeatModalOpen} onClose={() => setBeatModalOpen(false)} beat={beat} onAddToCart={() => {}} onBuyNow={() => {}} />
-    <CartModal isOpen={isCartModalOpen} onClose={() => setCartModalOpen(false)} cartItems={cartContents} onCheckout={() => {}} /> */}
+    <PlayerBar isPlaying={isPlaying} onPlayPause={() => setIsPlaying(!isPlaying)} currentTrack={beat} progress={30} />
+    <BeatModal isOpen={isBeatModalOpen} onClose={closeBeatModal} beat={beat} selectedLicense={selectedLicense} onLicenseSelect={setSelectedLicense} onAddToCart={addToCart} onBuyNow={handleBuyNow} />
+    <CartModal isOpen={isCartModalOpen} onClose={() => setCartModalOpen(false)} cartItems={cartContents} onRemoveItem={handleRemoveItem} onUpdateQuantity={handleUpdateQuantity} onCheckout={() => router.push("/checkout")} />
     </>
   );
 }
