@@ -46,7 +46,7 @@ export default function BeatModal({ isOpen, beat, onClose, selectedLicense, onLi
                 <h1 className="text-4xl font-extrabold text-white mb-2">{beat.title}</h1>
                 <p className="text-lg text-gray-300">{beat.producer}</p>
                 <div className="mt-4 flex gap-2">
-                    {beat.tags.map(tag => (
+                    {beat.tags?.map(tag => (
                         <span key={tag} className="bg-white/10 text-white text-xs font-bold px-2.5 py-1 rounded-full capitalize backdrop-blur-sm">{tag}</span>
                     ))}
                     <span className="bg-white/10 text-white text-xs font-bold px-2.5 py-1 rounded-full backdrop-blur-sm">{beat.bpm} BPM</span>

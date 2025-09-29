@@ -17,9 +17,10 @@ interface Beat {
   price: number;
   cover: string;
   bpm: number;
+  tags: string[];
   description: string;
   isFree?: boolean;
-  licenses: Array<{ name: string; price: number; }>;
+  licenses: Array<{ name: string; price: number; features: string[] }>;
 }
 
 interface CartItem { beat: Beat; licenseIndex: number; quantity: number; }
@@ -79,12 +80,12 @@ export default function Home() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setBeats([
-        { id: 1, title: "Spaceship", producer: "LuckyBoy", price: 25, cover: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80", bpm: 140, description: "...", licenses: [{ name: "Basic", price: 25 }] },
-        { id: 2, title: "Attitude", producer: "BeatStars", price: 0, isFree: true, cover: "https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=80", bpm: 95, description: "...", licenses: [{ name: "Free", price: 0 }] },
-        { id: 3, title: "Hold On", producer: "PremiumBeats", price: 50, cover: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80", bpm: 120, description: "...", licenses: [{ name: "Basic", price: 50 }] },
-        { id: 4, title: "Kentro", producer: "Fireboy DML", price: 30, cover: "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=400&q=80", bpm: 140, description: "...", licenses: [{ name: "Basic", price: 30 }] },
-        { id: 5, title: "Skido", producer: "Victony", price: 25, cover: "https://images.unsplash.com/photo-1458560871784-56d23406c791?w=400&q=80", bpm: 95, description: "...", licenses: [{ name: "Basic", price: 25 }] },
-        { id: 6, title: "Jungle", producer: "Syndrome", price: 0, isFree: true, cover: "https://images.unsplash.com/photo-1471478331149-c72f17e33c73?w=400&q=80", bpm: 110, description: "...", licenses: [{ name: "Free", price: 0 }] },
+        { id: 1, title: "Spaceship", producer: "LuckyBoy", price: 25, cover: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80", bpm: 140, tags: ["trap", "hip-hop", "drake"], description: "...", licenses: [{ name: "Basic", price: 25, features: ["MP3 file", "Use for 1 music video", "100,000 streams"] }] },
+        { id: 2, title: "Attitude", producer: "BeatStars", price: 0, isFree: true, cover: "https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=80", bpm: 95, tags: ["pop", "chill", "upbeat"], description: "...", licenses: [{ name: "Free", price: 0, features: ["MP3 file for non-commercial use"] }] },
+        { id: 3, title: "Hold On", producer: "PremiumBeats", price: 50, cover: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80", bpm: 120, tags: ["r&b", "soul", "smooth"], description: "...", licenses: [{ name: "Basic", price: 50, features: ["MP3 and WAV files", "Unlimited non-commercial use"] }] },
+        { id: 4, title: "Kentro", producer: "Fireboy DML", price: 30, cover: "https://images.unsplash.com/photo-1487180144351-b8472da7d491?w=400&q=80", bpm: 140, tags: ["afrobeat", "dancehall", "summer"], description: "...", licenses: [{ name: "Basic", price: 30, features: ["MP3 file", "10,000 streams"] }] },
+        { id: 5, title: "Skido", producer: "Victony", price: 25, cover: "https://images.unsplash.com/photo-1458560871784-56d23406c791?w=400&q=80", bpm: 95, tags: ["lofi", "chillhop", "relax"], description: "...", licenses: [{ name: "Basic", price: 25, features: ["MP3 file"] }] },
+        { id: 6, title: "Jungle", producer: "Syndrome", price: 0, isFree: true, cover: "https://images.unsplash.com/photo-1471478331149-c72f17e33c73?w=400&q=80", bpm: 110, tags: ["drill", "uk", "grime"], description: "...", licenses: [{ name: "Free", price: 0, features: ["MP3 file for non-commercial use"] }] },
       ]);
       setIsLoading(false);
     }, 1000);
@@ -94,7 +95,17 @@ export default function Home() {
   // --- Handlers ---
   const openLicenseModal = (beat: Beat) => { setSelectedBeat(beat); setLicenseModalOpen(true); };
   const closeLicenseModal = () => { setLicenseModalOpen(false); setSelectedBeat(null); setSelectedLicense(null); };
-  const addToCart = () => { /* ... */ };
+  const addToCart = () => {
+    if (!selectedBeat || selectedLicense === null) return;
+    const cartItem: CartItem = {
+      beat: selectedBeat,
+      licenseIndex: selectedLicense,
+      quantity: 1
+    };
+    setCartContents(prev => [...prev, cartItem]);
+    closeLicenseModal();
+    setCartModalOpen(true);
+  };
   const togglePlay = (id: number) => {
     if (currentTrack === id) setIsPlaying(!isPlaying);
     else { setCurrentTrack(id); setIsPlaying(true); }
