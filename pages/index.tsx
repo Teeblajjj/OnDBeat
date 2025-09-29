@@ -1,6 +1,7 @@
 import Head from "next/head";
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import { Play, Pause, Heart, ShoppingCart, Music, Check, Download, ChevronLeft, ChevronRight, Star, Mic2, Video, Copy, Signal, Users, RadioTower } from "lucide-react";
 import { BsBagPlus } from "react-icons/bs";
 import Sidebar from "../components/Sidebar";
@@ -32,9 +33,9 @@ interface Beat {
 }
 
 interface CartItem { beat: Beat; licenseIndex: number; quantity: number; }
-interface Creator { name: string; image: string; }
+interface Creator { id: number; name: string; image: string; }
 interface Category { name: string; cover: string; }
-interface Collection { name: string; creator: string; cover: string; }
+interface Collection { id: number; name: string; creator: string; cover: string; }
 
 // --- Component ---
 export default function Home() {
@@ -69,21 +70,21 @@ export default function Home() {
   ];
 
   const collections: Collection[] = [
-      { name: "Artist Essentials", creator: "ONDBeat Curated", cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80" },
-      { name: "Summer Vibes", creator: "LuckyBoy", cover: "https://images.unsplash.com/photo-1507525428034-b723a9ce6890?w=400&q=80" },
-      { name: "Late Night Drive", creator: "PremiumBeats", cover: "https://images.unsplash.com/photo-1531338700946-76e4c7ba1200?w=400&q=80" },
-      { name: "Workout Fuel", creator: "BeatStars", cover: "https://images.unsplash.com/photo-1434682881908-b43d0467b798?w=400&q=80" },
-      { name: "Focus Flow", creator: "ONDBeat Curated", cover: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&q=80" },
-      { name: "Drill UK Hits", creator: "Syndrome", cover: "https://images.unsplash.com/photo-1593113646773-4627116a537d?w=400&q=80" },
+      { id: 1, name: "Artist Essentials", creator: "ONDBeat Curated", cover: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80" },
+      { id: 2, name: "Summer Vibes", creator: "LuckyBoy", cover: "https://images.unsplash.com/photo-1507525428034-b723a9ce6890?w=400&q=80" },
+      { id: 3, name: "Late Night Drive", creator: "PremiumBeats", cover: "https://images.unsplash.com/photo-1531338700946-76e4c7ba1200?w=400&q=80" },
+      { id: 4, name: "Workout Fuel", creator: "BeatStars", cover: "https://images.unsplash.com/photo-1434682881908-b43d0467b798?w=400&q=80" },
+      { id: 5, name: "Focus Flow", creator: "ONDBeat Curated", cover: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&q=80" },
+      { id: 6, name: "Drill UK Hits", creator: "Syndrome", cover: "https://images.unsplash.com/photo-1593113646773-4627116a537d?w=400&q=80" },
   ];
 
   const featuredCreators: Creator[] = [
-      { name: "Davido", image: "https://i.scdn.co/image/ab67616100005174799f3b0aa263a21763176f7a" },
-      { name: "Shallipopi", image: "https://i.scdn.co/image/ab67616100005174d9e1f422c59a34a26c483f2d" },
-      { name: "Asake", image: "https://i.scdn.co/image/ab676161000051743e49c7c25c35d79a5c4323c2" },
-      { name: "Seyi Vibez", image: "https://i.scdn.co/image/ab67616100005174d3203279c09445d50692994f" },
-      { name: "Burna Boy", image: "https://i.scdn.co/image/ab67616100005174b19af0ea736c6228d6eb539c" },
-      { name: "ODUMODUBLVCK", image: "https://i.scdn.co/image/ab6761610000517472481b593678546f6161e1b5" },
+      { id: 1, name: "Davido", image: "https://i.scdn.co/image/ab67616100005174799f3b0aa263a21763176f7a" },
+      { id: 2, name: "Shallipopi", image: "https://i.scdn.co/image/ab67616100005174d9e1f422c59a34a26c483f2d" },
+      { id: 3, name: "Asake", image: "https://i.scdn.co/image/ab676161000051743e49c7c25c35d79a5c4323c2" },
+      { id: 4, name: "Seyi Vibez", image: "https://i.scdn.co/image/ab67616100005174d3203279c09445d50692994f" },
+      { id: 5, name: "Burna Boy", image: "https://i.scdn.co/image/ab67616100005174b19af0ea736c6228d6eb539c" },
+      { id: 6, name: "ODUMODUBLVCK", image: "https://i.scdn.co/image/ab6761610000517472481b593678546f6161e1b5" },
   ];
 
   const sampleLicenses: License[] = [
@@ -218,7 +219,8 @@ export default function Home() {
       router.push("/checkout");
   }
 
-  const togglePlay = (id: number) => {
+  const togglePlay = (e: React.MouseEvent, id: number) => {
+    e.stopPropagation();
     if (currentTrack === id) setIsPlaying(!isPlaying);
     else { setCurrentTrack(id); setIsPlaying(true); }
   };
@@ -245,23 +247,25 @@ export default function Home() {
   );
 
   const BeatCard = ({ beat }: { beat: Beat }) => (
-    <div className="bg-[#181818] p-4 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer group w-48 flex-shrink-0">
-      <div className="relative mb-4">
-        <img src={beat.cover} alt={beat.title} className="w-full h-40 object-cover rounded-md" />
-        <button onClick={() => togglePlay(beat.id)} className="absolute bottom-2 right-2 w-12 h-12 bg-green-500 text-black rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform group-hover:scale-105 shadow-lg">
-          {currentTrack === beat.id && isPlaying ? <Pause size={24} fill="black" /> : <Play size={24} fill="black" className="ml-1" />}
-        </button>
-      </div>
-      <h3 className="text-white font-bold truncate">{beat.title}</h3>
-      <p className="text-gray-400 text-sm truncate mb-4">{beat.producer}</p>
-      <div className="flex items-center justify-between">
-        <button onClick={() => openLicenseModal(beat)} className="bg-white/10 hover:bg-white/20 text-white font-bold py-2 px-3 rounded-full flex items-center gap-2 text-sm">
-          <BsBagPlus />
-          <span>${beat.price}</span>
-        </button>
-        {beat.isFree && <Download size={20} className="text-gray-400 hover:text-white" />}
-      </div>
-    </div>
+    <Link href={`/beats/${beat.id}`} legacyBehavior>
+        <a className="bg-[#181818] p-4 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer group w-48 flex-shrink-0 block">
+            <div className="relative mb-4">
+                <img src={beat.cover} alt={beat.title} className="w-full h-40 object-cover rounded-md" />
+                <button onClick={(e) => togglePlay(e, beat.id)} className="absolute bottom-2 right-2 w-12 h-12 bg-green-500 text-black rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all transform group-hover:scale-105 shadow-lg">
+                {currentTrack === beat.id && isPlaying ? <Pause size={24} fill="black" /> : <Play size={24} fill="black" className="ml-1" />}
+                </button>
+            </div>
+            <h3 className="text-white font-bold truncate">{beat.title}</h3>
+            <p className="text-gray-400 text-sm truncate mb-4">{beat.producer}</p>
+            <div className="flex items-center justify-between">
+                <button onClick={(e) => { e.preventDefault(); e.stopPropagation(); openLicenseModal(beat); }} className="bg-white/10 hover:bg-white/20 text-white font-bold py-2 px-3 rounded-full flex items-center gap-2 text-sm">
+                <BsBagPlus />
+                <span>${beat.price}</span>
+                </button>
+                {beat.isFree && <Download size={20} className="text-gray-400 hover:text-white" />}
+            </div>
+        </a>
+    </Link>
   );
 
   return (
@@ -296,11 +300,13 @@ export default function Home() {
 
               <Carousel title="Top Collections" scrollRef={collectionsRef}>
                   {collections.map((item) => (
-                      <div key={item.name} className="bg-[#181818] p-4 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer group w-48 flex-shrink-0">
+                    <Link href={`/collections/${item.id}`} key={item.id} legacyBehavior>
+                      <a className="bg-[#181818] p-4 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer group w-48 flex-shrink-0 block">
                           <img src={item.cover} alt={item.name} className="w-full h-40 object-cover rounded-md mb-4" />
                           <h3 className="text-white font-bold truncate">{item.name}</h3>
                           <p className="text-gray-400 text-sm truncate">By {item.creator}</p>
-                      </div>
+                      </a>
+                    </Link>
                   ))}
               </Carousel>
 
@@ -315,11 +321,13 @@ export default function Home() {
                 </div>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {featuredCreators.map((creator) => (
-                        <div key={creator.name} className="bg-transparent p-2 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer text-center group">
-                            <img src={creator.image} alt={creator.name} className="w-full rounded-full mb-4 shadow-lg" />
-                            <h3 className="text-white font-bold truncate">{creator.name}</h3>
-                            <p className="text-gray-400 text-sm">Artist</p>
-                        </div>
+                        <Link href={`/profile/${creator.id}`} key={creator.id} legacyBehavior>
+                            <a className="bg-transparent p-2 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer text-center group block">
+                                <img src={creator.image} alt={creator.name} className="w-full rounded-full mb-4 shadow-lg" />
+                                <h3 className="text-white font-bold truncate">{creator.name}</h3>
+                                <p className="text-gray-400 text-sm">Artist</p>
+                            </a>
+                        </Link>
                     ))}
                 </div>
               </section>

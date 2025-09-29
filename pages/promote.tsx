@@ -1,9 +1,9 @@
 import Head from 'next/head';
 import { useState } from 'react';
-import Sidebar from '../../components/Sidebar';
-import Header from '../../components/Header';
-import PlayerBar from '../../components/PlayerBar';
-import CartModal from '../../components/CartModal';
+import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
+import PlayerBar from '../components/PlayerBar';
+import CartModal from '../components/CartModal';
 import { Rocket, Target, BarChart, Check, CheckCircle, Lock } from 'lucide-react';
 
 // --- Data ---
