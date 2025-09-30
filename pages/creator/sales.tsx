@@ -3,40 +3,21 @@ import { useState } from 'react';
 import Sidebar from '../../components/Sidebar';
 import Header from '../../components/Header';
 import PlayerBar from '../../components/PlayerBar';
-import { DollarSign, ShoppingCart, BarChart, Users } from 'lucide-react';
 
-const StatCard = ({ icon, label, value, color }) => (
-    <div className={`bg-neutral-800/60 p-6 rounded-lg flex items-center space-x-4`}>
-        <div className={`p-3 rounded-full bg-${color}-600/20 text-${color}-400`}>
-            {icon}
-        </div>
-        <div>
-            <p className="text-sm text-neutral-400 font-semibold uppercase tracking-wider">{label}</p>
-            <p className="text-2xl font-bold">{value}</p>
-        </div>
-    </div>
-);
-
-export default function CreatorDashboardPage() {
+const SalesPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const stats = {
-      totalRevenue: "$4,820.50",
-      totalSales: 210,
-      followers: "3.1K",
-      monthlyListeners: "75K",
-  };
-  
-  const recentSales = [
-      { id: 1, beatName: 'Sunset Vibez', customer: 'Michael Scott', license: 'Standard', price: "$25.00" },
-      { id: 2, beatName: 'Drill Sergeant', customer: 'Dwight Schrute', license: 'Exclusive', price: "$250.00" },
+  const sales = [
+    { id: 1, beatName: 'Sunset Vibez', customer: 'Michael Scott', license: 'Standard', price: '$25.00', date: '2023-10-26' },
+    { id: 2, beatName: 'Drill Sergeant', customer: 'Dwight Schrute', license: 'Exclusive', price: '$250.00', date: '2023-10-24' },
+    { id: 3, beatName: 'Ocean Drive', customer: 'Jim Halpert', license: 'Standard', price: '$25.00', date: '2023-10-22' },
   ];
 
   return (
     <>
       <Head>
-        <title>Creator Dashboard - ONDBeat Marketplace</title>
+        <title>Sales - ONDBeat Marketplace</title>
       </Head>
 
       <div className="min-h-screen bg-black text-white flex">
@@ -52,16 +33,8 @@ export default function CreatorDashboardPage() {
           />
 
           <main className="bg-gradient-to-b from-purple-900/30 to-[#121212] p-8">
-            <h1 className="text-4xl font-bold mb-8">Creator Dashboard</h1>
+            <h1 className="text-4xl font-bold mb-8">Sales</h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                <StatCard icon={<DollarSign size={24}/>} label="Total Revenue" value={stats.totalRevenue} color="green" />
-                <StatCard icon={<ShoppingCart size={24}/>} label="Total Sales" value={stats.totalSales} color="blue" />
-                <StatCard icon={<Users size={24}/>} label="Followers" value={stats.followers} color="pink" />
-                <StatCard icon={<BarChart size={24}/>} label="Monthly Listeners" value={stats.monthlyListeners} color="yellow" />
-            </div>
-
-            <h2 className="text-2xl font-bold mb-4">Recent Sales</h2>
             <div className="bg-neutral-900/70 rounded-lg">
                 <table className="w-full text-left">
                     <thead className="border-b border-neutral-700">
@@ -70,10 +43,11 @@ export default function CreatorDashboardPage() {
                             <th className="p-4 font-semibold">Customer</th>
                             <th className="p-4 font-semibold">License</th>
                             <th className="p-4 font-semibold">Price</th>
+                            <th className="p-4 font-semibold">Date</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {recentSales.map(sale => (
+                        {sales.map(sale => (
                             <tr key={sale.id} className="border-b border-neutral-800 hover:bg-neutral-800/60">
                                 <td className="p-4 font-semibold">{sale.beatName}</td>
                                 <td className="p-4 text-neutral-400">{sale.customer}</td>
@@ -83,6 +57,7 @@ export default function CreatorDashboardPage() {
                                    </span>
                                 </td>
                                 <td className="p-4 font-bold">{sale.price}</td>
+                                <td className="p-4 text-neutral-400">{sale.date}</td>
                             </tr>
                         ))}
                     </tbody>
@@ -95,5 +70,7 @@ export default function CreatorDashboardPage() {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
+
+export default SalesPage;

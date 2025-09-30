@@ -1,113 +1,96 @@
-import Head from 'next/head'
-import { useState } from 'react'
-import Sidebar from '../components/Sidebar'
-import Header from '../components/Header'
-import PlayerBar from '../components/PlayerBar'
-import CartModal from '../components/CartModal'
-import { Search, ChevronDown, LifeBuoy, MessageSquare, BookOpen } from 'lucide-react'
+import Head from 'next/head';
+import { useState } from 'react';
+import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
+import PlayerBar from '../components/PlayerBar';
+import { LifeBuoy, ChevronDown } from 'lucide-react';
 
-const faqItems = [
-  { q: "How do I upload my beats?", a: "From the sidebar, navigate to the 'Upload' page. You can drag and drop your audio files (MP3, WAV) and cover art, fill in the beat details like title, BPM, and key, set your licensing prices, and then hit 'Publish Beat'." },
-  { q: "What are the different licensing options?", a: "We offer several license types, typically including Basic, Premium, and Exclusive. Each license grants the buyer different rights regarding usage, distribution, and ownership. You can set your own prices for each license when you upload a beat." },
-  { q: "How do I get paid for my sales?", a: "Connect your preferred payment method (like Stripe or PayPal) in your account settings. Payouts are processed automatically after a sale is confirmed. Our platform fee is deducted from the total sale amount." },
-  { q: "Can I promote my beats on ONDBeat?", a: "Yes! We offer promotional tools to help your music reach a wider audience. You can feature your tracks on the homepage, in curated playlists, and in targeted campaigns. Check the 'Promote' page for more details." },
-  { q: "How does the community feature work?", a: "The community page is a space to connect with other artists and producers. You can share your work, ask for feedback, find collaborators, and participate in discussions about music production and the industry." },
-];
+const AccordionItem = ({ title, children }) => {
+    const [isOpen, setIsOpen] = useState(false);
 
-// --- Page Component ---
-export default function Help() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [cartModalOpen, setCartModalOpen] = useState(false);
-  const [cartContents] = useState<any[]>([]);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-
-  const AccordionItem = ({ item, index, isActive, onToggle }) => (
-    <div className="border-b border-neutral-800">
-        <button onClick={() => onToggle(index)} className="w-full flex justify-between items-center text-left py-5 px-2">
-            <span className={`text-lg font-medium ${isActive ? 'text-green-400' : 'text-white'}`}>{item.q}</span>
-            <ChevronDown className={`w-6 h-6 transform transition-transform ${isActive ? 'rotate-180 text-green-400' : 'text-gray-400'}`} />
-        </button>
-        <div className={`overflow-hidden transition-all duration-300 ease-in-out ${isActive ? 'max-h-96' : 'max-h-0'}`}>
-            <p className="pb-5 px-2 text-gray-300">{item.a}</p>
+    return (
+        <div className="border-b border-neutral-800">
+            <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full flex justify-between items-center p-6 text-left hover:bg-neutral-800/50"
+            >
+                <h3 className="text-lg font-semibold">{title}</h3>
+                <ChevronDown
+                    className={`transform transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                    size={20}
+                />
+            </button>
+            {isOpen && <div className="p-6 pt-0 text-neutral-400">{children}</div>}
         </div>
-    </div>
-  );
+    );
+};
 
-  return (
-    <>
-      <Head>
-        <title>Help Center - ONDBeat</title>
-      </Head>
+const HelpCenterPage = () => {
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
 
-      <div className="min-h-screen bg-black text-white">
-        <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
-        
-        <div className="md:ml-56">
-          <Header 
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
-            onCartClick={() => setCartModalOpen(true)}
-            cartItems={cartContents.length}
-          />
+    const faqs = [
+        {
+            question: "How do I upload my first beat?",
+            answer: "To upload a beat, navigate to the 'My Content' page in the Creator Tools section and click the 'Upload' button. You will be prompted to provide audio files, artwork, and details about your beat like title, genre, and pricing."
+        },
+        {
+            question: "How do payouts work?",
+            answer: "Once your earnings reach the minimum payout threshold, you can request a payout from the 'Payouts' page. Payouts are typically processed within 3-5 business days to your connected payment method."
+        },
+        {
+            question: "What are the differences between licenses?",
+            answer: "A Standard License typically grants the buyer rights to use the beat for non-commercial projects, while an Exclusive License grants them full ownership and rights to use the beat for any purpose, including commercial releases. The beat is removed from the store after an exclusive sale."
+        },
+        {
+            question: "How does beat promotion work?",
+            answer: "Our promotion packages boost your visibility on the platform. Depending on the tier, your beats can be featured on the homepage, included in our newsletters, and shared on our social media channels to drive more traffic and sales."
+        }
+    ];
 
-          <main className="p-4 md:p-8 bg-gradient-to-b from-neutral-900 to-[#121212]">
-             {/* --- Hero Section --- */}
-            <div className="text-center py-12 md:py-20">
-                <LifeBuoy size={48} className="mx-auto text-green-400 mb-4" />
-                <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-3">How can we help?</h1>
-                <p className="text-gray-400 text-lg mb-8">Search our knowledge base or contact us.</p>
-                <div className="max-w-xl mx-auto relative">
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input 
-                        type="text"
-                        placeholder="Search for topics, questions..."
-                        className="w-full bg-neutral-800 border border-neutral-700 rounded-full py-4 pl-12 pr-4 text-white placeholder:text-gray-500 focus:ring-2 focus:ring-green-500 focus:outline-none transition-shadow"
+    return (
+        <>
+            <Head>
+                <title>Help Center - ONDBeat Marketplace</title>
+            </Head>
+
+            <div className="min-h-screen bg-black text-white flex">
+                <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
+
+                <div className="flex-1 md:ml-56">
+                    <Header
+                        searchQuery={searchQuery}
+                        onSearchChange={setSearchQuery}
+                        onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        onCartClick={() => { }}
+                        cartItems={0}
                     />
+
+                    <main className="bg-gradient-to-b from-neutral-900/60 to-[#121212] p-8">
+                        <div className="flex items-center space-x-4 mb-8">
+                            <LifeBuoy size={40} className="text-green-500" />
+                            <h1 className="text-4xl font-bold">Help Center</h1>
+                        </div>
+                        
+                        <p className="text-lg text-neutral-400 mb-8 max-w-2xl">
+                            Welcome to the ONDBeat Help Center. Here you can find answers to frequently asked questions. If you can't find what you're looking for, feel free to contact our support team.
+                        </p>
+
+                        <div className="bg-neutral-900/70 rounded-lg max-w-4xl mx-auto">
+                            <h2 className="text-2xl font-bold p-6">Frequently Asked Questions</h2>
+                            {faqs.map((faq, index) => (
+                                <AccordionItem key={index} title={faq.question}>
+                                    <p>{faq.answer}</p>
+                                </AccordionItem>
+                            ))}
+                        </div>
+                    </main>
+
+                    <PlayerBar isPlaying={false} onPlayPause={() => { }} currentTrack={null} progress={0} />
                 </div>
             </div>
+        </>
+    );
+};
 
-            <div className="max-w-4xl mx-auto">
-                 {/* --- FAQ Section --- */}
-                 <div className="mb-16">
-                    <h2 className="text-3xl font-bold text-white mb-6 text-center">Frequently Asked Questions</h2>
-                    <div className="bg-[#181818] p-4 md:p-6 rounded-lg">
-                       {faqItems.map((item, index) => (
-                           <AccordionItem 
-                               key={index} 
-                               item={item} 
-                               index={index} 
-                               isActive={activeIndex === index}
-                               onToggle={(idx) => setActiveIndex(activeIndex === idx ? null : idx)}
-                           />
-                       ))}
-                    </div>
-                 </div>
-
-                {/* --- Contact Section --- */}
-                <div className="text-center">
-                     <h2 className="text-3xl font-bold text-white mb-6">Still need help?</h2>
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-                        <div className="bg-[#181818] p-6 rounded-lg text-left hover:bg-[#282828] transition-colors cursor-pointer">
-                            <MessageSquare className="text-green-400 mb-3" size={28} />
-                            <h3 className="text-xl font-bold text-white mb-1">Contact Support</h3>
-                            <p className="text-gray-400">Get in touch with our team directly for personalized assistance.</p>
-                        </div>
-                         <div className="bg-[#181818] p-6 rounded-lg text-left hover:bg-[#282828] transition-colors cursor-pointer">
-                            <BookOpen className="text-green-400 mb-3" size={28} />
-                            <h3 className="text-xl font-bold text-white mb-1">Platform Guides</h3>
-                            <p className="text-gray-400">Browse our in-depth guides on using ONDBeat effectively.</p>
-                        </div>
-                     </div>
-                </div>
-            </div>
-          </main>
-
-          <PlayerBar isPlaying={false} onPlayPause={() => {}} currentTrack={null} progress={0} />
-          <CartModal isOpen={cartModalOpen} onClose={() => setCartModalOpen(false)} cartItems={cartContents} onRemoveItem={() => {}} onUpdateQuantity={() => {}} onCheckout={() => {}} />
-        </div>
-      </div>
-    </>
-  )
-}
+export default HelpCenterPage;
