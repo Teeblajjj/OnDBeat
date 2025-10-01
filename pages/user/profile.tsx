@@ -1,110 +1,98 @@
+import { useAuth } from '../../context/AuthContext';
+import Layout from '../../components/Layout';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Twitter, Instagram, Cloud } from 'lucide-react';
 
-import Head from 'next/head';
-import { useState } from 'react';
-import Sidebar from '../../components/Sidebar';
-import Header from '../../components/Header';
-import PlayerBar from '../../components/PlayerBar';
-import { Users, BarChart2, Wallet, DollarSign, Heart, ShoppingBag, Clock } from 'lucide-react';
+const profileData = {
+  beatsPurchased: 12,
+  favorites: 42,
+  totalSpent: 450,
+};
 
-const StatCard = ({ icon, label, value, color }) => (
-    <div className={`bg-neutral-800/60 p-6 rounded-lg flex items-center space-x-4`}>
-        <div className={`p-3 rounded-full bg-${color}-600/20 text-${color}-400`}>
-            {icon}
+const chartData = [
+  { name: 'Beats Purchased', value: profileData.beatsPurchased },
+  { name: 'Favorites', value: profileData.favorites },
+  { name: 'Total Spent', value: profileData.totalSpent },
+];
+
+const UserProfilePage = () => {
+  const { user } = useAuth();
+
+  if (!user) {
+    return (
+      <Layout>
+        <div className="text-center py-20">
+          <p className="text-2xl text-white">Please log in to view your profile.</p>
         </div>
-        <div>
-            <p className="text-sm text-neutral-400 font-semibold uppercase tracking-wider">{label}</p>
-            <p className="text-2xl font-bold">{value}</p>
-        </div>
-    </div>
-);
-
-export default function ProfileDashboardPage() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Mock data - in a real app, this would come from an API
-  const walletBalance = "$128.50";
-  const stats = {
-      beatsPurchased: 12,
-      favorites: 48,
-      totalSpent: "$450.00",
-  };
-  const recentlyPlayed = [
-      { id: 1, name: 'Lo-Fi Dreams', producer: 'Chillhop Cafe', playedAt: '2 hours ago' },
-      { id: 2, name: '80s Synthwave', producer: 'Neon Nights', playedAt: 'Yesterday' },
-      { id: 3, name: 'Trap Essentials Vol. 3', producer: 'Metro Boomin', playedAt: '3 days ago' },
-  ];
+      </Layout>
+    );
+  }
 
   return (
-    <>
-      <Head>
-        <title>My Dashboard - ONDBeat Marketplace</title>
-      </Head>
-
-      <div className="min-h-screen bg-black text-white flex">
-        <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
-        
-        <div className="flex-1 md:ml-56">
-          <Header 
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
-            onCartClick={() => {}}
-            cartItems={0}
-          />
-
-          <main className="bg-gradient-to-b from-neutral-900/60 to-[#121212] p-8">
-            {/* Header section with User and Wallet */}
-            <div className="flex justify-between items-start mb-10">
-                <div className="flex items-center space-x-4">
-                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80" alt="User Avatar" className="w-20 h-20 rounded-full object-cover" />
-                    <div>
-                        <p className='text-sm text-neutral-400'>Welcome back,</p>
-                        <h1 className="text-3xl font-bold">Demo User</h1>
-                    </div>
+    <Layout>
+      <div className="max-w-6xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="bg-neutral-900 shadow-xl rounded-lg overflow-hidden">
+          {/* Profile Header */}
+          <div className="px-6 py-8 sm:p-10">
+            <div className="flex items-center">
+              <img className="h-24 w-24 rounded-full object-cover ring-4 ring-green-500" src={user.photoURL || '/default-avatar.png'} alt="User Avatar" />
+              <div className="ml-6">
+                <h1 className="text-3xl font-bold text-white">{user.displayName}</h1>
+                <p className="text-md text-neutral-400 mt-1">{user.bio}</p>
+                <div className="flex items-center mt-3 space-x-4">
+                  <a href="#" className="text-neutral-500 hover:text-green-500"><Twitter size={20} /></a>
+                  <a href="#" className="text-neutral-500 hover:text-green-500"><Instagram size={20} /></a>
+                  <a href="#" className="text-neutral-500 hover:text-green-500"><Cloud size={20} /></a>
                 </div>
-                <div className="bg-neutral-800/60 p-4 rounded-lg text-right">
-                    <div className='flex items-center space-x-4'>
-                        <div>
-                           <p className="text-sm text-neutral-400">Wallet Balance</p>
-                           <p className="text-2xl font-bold">{walletBalance}</p>
-                        </div>
-                        <button className="bg-green-600 text-white font-bold p-3 rounded-full hover:bg-green-700 transition-colors">
-                           <Wallet size={20} />
-                        </button>
-                    </div>
+              </div>
+              <div className="ml-auto flex space-x-8 text-center">
+                <div>
+                  <p className="text-2xl font-bold text-white">{user.followers}</p>
+                  <p className="text-sm text-neutral-400">Followers</p>
                 </div>
+                <div>
+                  <p className="text-2xl font-bold text-white">{user.following}</p>
+                  <p className="text-sm text-neutral-400">Following</p>
+                </div>
+              </div>
             </div>
+          </div>
 
-            {/* Analytics Blocks */}
-            <h2 className="text-2xl font-bold mb-4">Your Analytics</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-                <StatCard icon={<ShoppingBag size={24}/>} label="Beats Purchased" value={stats.beatsPurchased} color="blue" />
-                <StatCard icon={<Heart size={24}/>} label="Favorites" value={stats.favorites} color="pink" />
-                <StatCard icon={<DollarSign size={24}/>} label="Total Spent" value={stats.totalSpent} color="yellow" />
+          {/* Analytics Dashboard */}
+          <div className="border-t border-neutral-800 p-6 sm:p-10">
+            <h2 className="text-xl font-semibold text-white mb-6">Your Dashboard</h2>
+            <div className="h-80 w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }} barCategoryGap={"40%"}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#404040" />
+                  <XAxis dataKey="name" stroke="#a3a3a3" />
+                  <YAxis stroke="#a3a3a3" />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#171717', 
+                      border: '1px solid #404040',
+                      borderRadius: '0.5rem' 
+                    }} 
+                    cursor={{ fill: 'rgba(34, 197, 94, 0.1)' }}
+                  />
+                  <Bar dataKey="value" fill="#22c55e" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
+          </div>
 
-            {/* History Section */}
-            <h2 className="text-2xl font-bold mb-4">Recently Played</h2>
-            <ul className="space-y-3">
-                {recentlyPlayed.map(item => (
-                    <li key={item.id} className="bg-neutral-800/50 p-4 rounded-lg flex justify-between items-center hover:bg-neutral-800 transition-colors">
-                        <div>
-                            <p className="font-semibold">{item.name}</p>
-                            <p className="text-sm text-neutral-400">by {item.producer}</p>
-                        </div>
-                        <div className="flex items-center space-x-2 text-sm text-neutral-500">
-                           <Clock size={16}/>
-                           <span>{item.playedAt}</span>
-                        </div>
-                    </li>
-                ))}
-            </ul>
-          </main>
-
-          <PlayerBar isPlaying={false} onPlayPause={() => {}} currentTrack={null} progress={0} />
+          {/* User Content Tabs (e.g., Purchased Beats, Favorites) */}
+          <div className="border-t border-neutral-800 p-6 sm:p-10">
+            <h2 className="text-xl font-semibold text-white mb-4">Your Collection</h2>
+            {/* Add tabs here in the future */}
+            <div className="text-center text-neutral-500 py-10">
+              <p>Your purchased beats and favorites will appear here.</p>
+            </div>
+          </div>
         </div>
       </div>
-    </>
-  )
-}
+    </Layout>
+  );
+};
+
+export default UserProfilePage;
