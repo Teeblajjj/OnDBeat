@@ -16,7 +16,7 @@ const Layout = ({ children }) => {
     };
 
     return (
-        <div className="min-h-screen bg-black text-white">
+        <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] to-[#121212] text-white">
             <div className="flex">
                 <Sidebar />
                 <div className="flex-1 md:ml-60">

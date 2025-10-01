@@ -49,7 +49,7 @@ export default function Home() {
 
   // --- Components ---
   const FeedItem = ({ beat }: { beat: Beat }) => (
-    <div className="bg-[#1c1c1c] border border-neutral-800 rounded-lg p-4 sm:p-6">
+    <div className="bg-[#181818] border border-neutral-800 rounded-lg p-4 sm:p-6 shadow-lg transform hover:scale-[1.01] transition-transform duration-300">
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-3">
           <UserCircle size={40} className="text-neutral-500" />
@@ -64,19 +64,20 @@ export default function Home() {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-6">
-        <div className="w-full sm:w-40 h-40 bg-neutral-800 rounded-md flex-shrink-0 flex items-center justify-center">
+        <div className="w-full sm:w-40 h-40 bg-neutral-800 rounded-md flex-shrink-0 flex items-center justify-center relative overflow-hidden">
             <Music size={60} className="text-neutral-600" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
         </div>
         <div className="flex-grow">
           <div className="flex items-center gap-3">
-            <button onClick={() => playTrack(beat)} className="text-white">
-              {currentTrack?.id === beat.id && isPlaying ? <Pause size={32} /> : <Play size={32} />}
+            <button onClick={() => playTrack(beat)} className="text-white bg-green-500/10 rounded-full p-2 hover:bg-green-500/20 transition-colors">
+              {currentTrack?.id === beat.id && isPlaying ? <Pause size={32} /> : <Play size={32} className="ml-1" />}
             </button>
             <h3 className="text-xl sm:text-2xl font-bold text-white flex-grow">{beat.title}</h3>
           </div>
           <p className="text-neutral-400 mt-2">Released on {beat.released}</p>
           <p className="text-neutral-300 my-3 text-sm">{beat.description}</p>
-          <button className="bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition-colors">
+          <button className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-full flex items-center gap-2 transition-all shadow-md hover:shadow-green-500/30">
             <ShoppingCart size={16} />
             <span>${beat.price}</span>
           </button>
@@ -84,15 +85,15 @@ export default function Home() {
       </div>
 
       <div className="flex items-center gap-6 text-neutral-400 mt-4 pt-4 border-t border-neutral-800">
-        <div className="flex items-center gap-2"><Heart size={20} /> <span>{beat.likes}</span></div>
-        <div className="flex items-center gap-2"><MessageCircle size={20} /> <span>{beat.comments}</span></div>
-        <div className="flex items-center gap-2"><Upload size={20} /> <span>{beat.shares}</span></div>
+        <button className="flex items-center gap-2 hover:text-green-400 transition-colors"><Heart size={20} /> <span>{beat.likes}</span></button>
+        <button className="flex items-center gap-2 hover:text-green-400 transition-colors"><MessageCircle size={20} /> <span>{beat.comments}</span></button>
+        <button className="flex items-center gap-2 hover:text-green-400 transition-colors"><Upload size={20} /> <span>{beat.shares}</span></button>
       </div>
     </div>
   );
 
   const TopProducersList = ({ producers }: { producers: Creator[] }) => (
-    <section className="bg-neutral-900/70 border border-neutral-800/80 rounded-2xl p-6">
+    <section className="bg-[#181818] border border-neutral-800 rounded-2xl p-6 shadow-lg">
       <h3 className="text-xl font-bold text-white mb-4">Top Producers</h3>
       <div className="space-y-4">
         {producers.map(p => (
@@ -107,7 +108,9 @@ export default function Home() {
                     <p className="text-sm text-neutral-400">{(p.followers / 1000).toFixed(1)}k followers</p>
                 </div>
             </div>
-            <button className="bg-blue-600 text-white text-sm font-bold px-4 py-1.5 rounded-full flex items-center justify-center hover:bg-blue-500 transition-colors">Follow</button>
+            <button className="bg-transparent border border-green-500 text-green-500 text-sm font-bold px-4 py-1.5 rounded-full flex items-center justify-center hover:bg-green-500 hover:text-black transition-colors">
+              Follow
+            </button>
           </div>
         ))}
       </div>
@@ -123,14 +126,14 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content Feed */}
           <div className="lg:col-span-2 space-y-6">
-            <h2 className="text-3xl font-bold text-white">Feed</h2>
+            <h2 className="text-3xl font-bold text-white mb-6">Feed</h2>
             {feedItems.map(beat => <FeedItem key={beat.id} beat={beat} />)}
           </div>
 
           {/* Sidebar Content */}
           <div className="space-y-8">
             <TopProducersList producers={topProducers} />
-            <section className="bg-neutral-900/70 border border-neutral-800/80 rounded-2xl p-6">
+            <section className="bg-[#181818] border border-neutral-800 rounded-2xl p-6 shadow-lg">
               <h3 className="text-xl font-bold text-white mb-4">Discover More</h3>
               <div className="flex flex-col gap-3">
                 <Link href="#" className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/60 transition-colors"><Compass size={20} className="text-green-400"/><span>Browse Genres</span></Link>
