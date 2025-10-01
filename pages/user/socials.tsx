@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { User, Lock, Share2, Bell } from 'lucide-react';
+import { User, Lock, Share2, Bell, Link as LinkIcon, Twitter, Instagram, Facebook } from 'lucide-react';
 import Layout from '../../components/Layout';
 
 const InputField = ({ label, type, placeholder, value, onChange, icon: Icon }) => (
@@ -29,7 +29,7 @@ const SettingsLayout = ({ children, activeTab }) => {
     return (
         <Layout>
              <Head>
-                <title>Edit Profile | ONDBEAT</title>
+                <title>Settings | ONDBEAT</title>
             </Head>
             <div className="max-w-6xl mx-auto p-4 sm:p-8 flex flex-col md:flex-row gap-8">
                 <aside className="md:w-1/4">
@@ -51,34 +51,19 @@ const SettingsLayout = ({ children, activeTab }) => {
     )
 }
 
-export default function EditProfilePage() {
+export default function SocialsPage() {
     return (
-        <SettingsLayout activeTab="profile">
+        <SettingsLayout activeTab="socials">
             <div className="bg-[#121212] border border-neutral-800/80 rounded-xl p-6 sm:p-8">
-                <h1 className="text-2xl font-bold text-white mb-6">Edit Profile</h1>
+                <h1 className="text-2xl font-bold text-white mb-6">Socials</h1>
                 <div className="space-y-6">
-                    <div className="flex items-center gap-6">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&q=80" alt="User Avatar" className="w-20 h-20 rounded-full object-cover"/>
-                        <div className="flex items-center gap-4">
-                            <button className="bg-neutral-700/60 text-white font-bold py-2 px-4 rounded-lg hover:bg-neutral-700 transition-all border border-neutral-600/90">Change Photo</button>
-                            <button className="text-sm text-neutral-400 hover:text-red-500 transition-colors">Remove</button>
-                        </div>
-                    </div>
-                    
-                    <InputField label="Name" type="text" placeholder="Enter your full name" value="Demo User" icon={User} />
-                    
-                    <div>
-                         <label className="font-semibold text-neutral-300 mb-2 block">Bio</label>
-                         <textarea 
-                            rows="4"
-                            placeholder="Tell the world about yourself..."
-                            className="w-full bg-neutral-800/60 border border-neutral-700/80 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-green-500 text-white transition-all"
-                        ></textarea>
-                    </div>
-
-                    <div className="flex justify-end pt-4">
-                        <button className="bg-green-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-green-500 transition-all shadow-md hover:shadow-green-500/20">Save Changes</button>
-                    </div>
+                    <InputField label="Website" type="text" placeholder="https://" icon={LinkIcon} />
+                    <InputField label="Twitter" type="text" placeholder="https://twitter.com/" icon={Twitter} />
+                    <InputField label="Instagram" type="text" placeholder="https://instagram.com/" icon={Instagram} />
+                    <InputField label="Facebook" type="text" placeholder="https://facebook.com/" icon={Facebook} />
+                </div>
+                <div className="flex justify-end pt-8">
+                    <button className="bg-green-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-green-500 transition-all shadow-md hover:shadow-green-500/20">Save Socials</button>
                 </div>
             </div>
         </SettingsLayout>

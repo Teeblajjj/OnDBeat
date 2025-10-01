@@ -1,10 +1,10 @@
-
 import { AppProps } from 'next/app';
 import { AuthProvider } from '../context/AuthContext';
 import { CartProvider } from '../context/CartContext';
 import { PlayerProvider } from '../context/PlayerContext';
 import AuthModal from '../components/AuthModal';
 import { useAuth } from '../context/AuthContext';
+import PageLoader from '../components/PageLoader'; // Import PageLoader
 import '../styles/globals.css';
 
 const AppContent = ({ Component, pageProps }: AppProps) => {
@@ -12,6 +12,7 @@ const AppContent = ({ Component, pageProps }: AppProps) => {
 
   return (
     <>
+      <PageLoader />
       <Component {...pageProps} />
       <AuthModal 
         isOpen={isAuthModalOpen} 

@@ -1,104 +1,185 @@
 import Head from 'next/head';
-import { Users, Link as LinkIcon, Gift, Copy, Check, Facebook, Twitter, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { Copy, Check, Users, DollarSign, BarChart2, Gift, ArrowLeft, Home } from 'lucide-react';
 
-const StatCard = ({ icon: Icon, title, value }) => (
-    <div className="bg-neutral-800/50 border border-neutral-700 p-6 rounded-xl text-center">
-        <Icon size={32} className="mx-auto mb-3 text-blue-500" />
-        <p className="text-2xl font-bold text-white">{value}</p>
-        <p className="text-sm text-neutral-400">{title}</p>
-    </div>
-);
-
-
-export default function InviteAFriendPage() {
+const AffiliateDashboardPage = () => {
     const [copied, setCopied] = useState(false);
+    const router = useRouter();
     const referralLink = "https://ondbeat.com/r/demo-user123";
+    const earnings = 75.50;
+    const threshold = 100;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(referralLink);
         setCopied(true);
-        setTimeout(() => setCopied(false), 2000); // Reset after 2 seconds
+        setTimeout(() => setCopied(false), 2000);
     };
-    
+
     const referrals = [
-        { name: "John Doe", status: "Signed Up", reward: "$5 Credit" },
-        { name: "Jane Smith", status: "Purchased a Beat", reward: "$10 Credit" },
-        { name: "Mike Johnson", status: "Pending", reward: "-" },
+        { user: 'user1.jpg', name: 'Alex Johnson', date: '2024-07-21', status: 'First Purchase', commission: '+' },
+        { user: 'user2.jpg', name: 'Maria Garcia', date: '2024-07-20', status: 'Signed Up', commission: '+' },
+        { user: 'user3.jpg', name: 'David Chen', date: '2024-07-18', status: 'Signed Up', commission: '+' },
     ];
 
     return (
         <>
             <Head>
-                <title>Invite a Friend | ONDBEAT</title>
+                <title>Affiliate Dashboard | ONDBEAT</title>
             </Head>
-            <div className="max-w-4xl mx-auto">
-                <div className="text-center mb-12">
-                    <Users size={48} className="mx-auto mb-4 text-blue-500"/>
-                    <h1 className="text-4xl font-bold mb-2">Invite Friends, Earn Rewards</h1>
-                    <p className="text-lg text-neutral-400">Share your love for ONDBEAT and get rewarded for every friend that joins.</p>
-                </div>
+            <div className="min-h-screen bg-[#121212] text-white p-4 sm:p-8">
+                <div className="max-w-7xl mx-auto">
+                    {/* Navigation */}
+                    <div className="flex items-center gap-6 mb-8">
+                        <button onClick={() => router.back()} className="flex items-center gap-2 text-neutral-400 hover:text-white font-medium transition-colors">
+                            <ArrowLeft size={20} />
+                            Back
+                        </button>
+                        <Link href="/" legacyBehavior>
+                            <a className="flex items-center gap-2 text-neutral-400 hover:text-white font-medium transition-colors">
+                                <Home size={20} />
+                                Home
+                            </a>
+                        </Link>
+                    </div>
 
-                <div className="grid md:grid-cols-3 gap-6 mb-12">
-                   <StatCard icon={Gift} title="Total Rewards" value="$15.00" />
-                   <StatCard icon={Users} title="Friends Joined" value="2" />
-                   <StatCard icon={LinkIcon} title="Clicks" value="48" />
-                </div>
+                    {/* Header */}
+                    <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10">
+                        <div>
+                            <h1 className="text-3xl font-bold">Affiliate Dashboard</h1>
+                            <p className="text-neutral-400 mt-1">Track your referrals and manage your earnings.</p>
+                        </div>
+                        <div className="flex items-center gap-4 mt-4 md:mt-0">
+                            <span className="text-sm font-medium">Affiliate Rank: <span className="font-bold text-green-400">Pro</span></span>
+                            <div className="h-8 w-px bg-neutral-700"></div>
+                            <div className="text-right">
+                                <p className="text-sm text-neutral-400">Total Earnings</p>
+                                <p className="font-bold text-xl text-green-400">$2,180.50</p>
+                            </div>
+                        </div>
+                    </header>
 
-                <div className="bg-[#1a1a1a] border border-neutral-800 rounded-xl p-8 mb-12 text-center">
-                    <h2 className="text-2xl font-bold mb-4">Your Unique Referral Link</h2>
-                    <p className="text-neutral-400 mb-6">Share this link with your friends. When they sign up, you both get rewarded!</p>
-                    <div className="flex justify-center">
-                        <div className="relative w-full max-w-md">
-                            <input 
-                                type="text" 
-                                readOnly 
-                                value={referralLink}
-                                className="w-full bg-neutral-900 border border-neutral-700 rounded-full pl-6 pr-28 py-3 text-neutral-300 focus:outline-none"
-                            />
-                            <button onClick={handleCopy} className="absolute right-1.5 top-1/2 -translate-y-1/2 bg-blue-600 text-white font-semibold py-2 px-4 rounded-full hover:bg-blue-700 flex items-center gap-2">
-                                {copied ? <><Check size={18}/>Copied!</> : <><Copy size={18}/>Copy</>}
-                            </button>
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        {/* Left Column */}
+                        <div className="lg:col-span-2 space-y-8">
+                            {/* Referral Link & Stats */}
+                            <div className="bg-[#1a1a1a] border border-neutral-800 rounded-xl p-8">
+                                <h2 className="text-xl font-semibold mb-4">Your Referral Link</h2>
+                                <div className="flex flex-col sm:flex-row gap-4">
+                                    <input type="text" readOnly value={referralLink} className="flex-grow bg-neutral-900 border border-neutral-700 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-green-500" />
+                                    <button onClick={handleCopy} className="bg-green-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center gap-2 w-full sm:w-auto">
+                                        {copied ? <Check size={18} /> : <Copy size={18} />} 
+                                        {copied ? 'Copied!' : 'Copy Link'}
+                                    </button>
+                                </div>
+                                <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">
+                                    <div className="p-4 bg-neutral-900/50 rounded-lg">
+                                        <BarChart2 size={24} className="mx-auto text-neutral-400 mb-2" />
+                                        <p className="text-2xl font-bold">1,204</p>
+                                        <p className="text-sm text-neutral-500">Clicks</p>
+                                    </div>
+                                    <div className="p-4 bg-neutral-900/50 rounded-lg">
+                                        <Users size={24} className="mx-auto text-neutral-400 mb-2" />
+                                        <p className="text-2xl font-bold">82</p>
+                                        <p className="text-sm text-neutral-500">Sign-ups</p>
+                                    </div>
+                                    <div className="p-4 bg-neutral-900/50 rounded-lg">
+                                        <DollarSign size={24} className="mx-auto text-neutral-400 mb-2" />
+                                        <p className="text-2xl font-bold">$2.1k</p>
+                                        <p className="text-sm text-neutral-500">Total Earned</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Referrals Table */}
+                            <div className="bg-[#1a1a1a] border border-neutral-800 rounded-xl">
+                                <h2 className="text-xl font-semibold p-6">Recent Referrals</h2>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left">
+                                        <thead className="border-b border-t border-neutral-800 text-sm text-neutral-400">
+                                            <tr>
+                                                <th className="px-6 py-4 font-medium">User</th>
+                                                <th className="px-6 py-4 font-medium">Date</th>
+                                                <th className="px-6 py-4 font-medium">Status</th>
+                                                <th className="px-6 py-4 font-medium text-right">Commission</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {referrals.map((ref, i) => (
+                                                <tr key={i} className="border-b border-neutral-800 hover:bg-neutral-800/40">
+                                                    <td className="px-6 py-4 flex items-center gap-3">
+                                                        <img src={`https://i.pravatar.cc/40?u=${ref.user}`} alt={ref.name} className="w-8 h-8 rounded-full" />
+                                                        <span className="font-medium">{ref.name}</span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-neutral-400">{ref.date}</td>
+                                                    <td className="px-6 py-4">
+                                                        <span className={`px-2.5 py-1 text-xs font-semibold rounded-full ${
+                                                            ref.status === 'First Purchase' ? 'bg-green-500/10 text-green-400' :
+                                                            'bg-blue-500/10 text-blue-400'
+                                                        }`}>{ref.status}</span>
+                                                    </td>
+                                                    <td className="px-6 py-4 text-right font-bold text-green-400">{ref.commission}$25.00</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right Column */}
+                        <div className="space-y-8">
+                            {/* Earnings & Cash Out */}
+                            <div className="bg-[#1a1a1a] border border-neutral-800 rounded-xl p-8">
+                                <div className="flex justify-between items-center mb-2">
+                                    <h2 className="text-xl font-semibold">Your Balance</h2>
+                                    <DollarSign size={20} className="text-neutral-500" />
+                                </div>
+                                <p className="text-4xl font-bold text-green-400 mb-4">${earnings.toFixed(2)}</p>
+                                <div className="w-full bg-neutral-700 rounded-full h-2.5 mb-2">
+                                    <div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${(earnings / threshold) * 100}%` }}></div>
+                                </div>
+                                <p className="text-sm text-neutral-400 mb-6">${(threshold - earnings).toFixed(2)} more to cash out</p>
+                                <button 
+                                    disabled={earnings < threshold}
+                                    className="w-full bg-green-600 text-white font-bold py-3 rounded-lg transition-all disabled:bg-neutral-700 disabled:text-neutral-500 disabled:cursor-not-allowed hover:bg-green-700"
+                                >
+                                    Cash Out to Main Balance
+                                </button>
+                            </div>
+
+                            {/* How it Works */}
+                            <div className="bg-[#1a1a1a] border border-neutral-800 rounded-xl p-8">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h2 className="text-xl font-semibold">How it Works</h2>
+                                    <Gift size={20} className="text-neutral-500" />
+                                </div>
+                                <ul className="space-y-4 text-neutral-400 text-sm">
+                                    <li className="flex gap-3">
+                                        <span className="font-bold text-green-400">1.</span>
+                                        <span>Share your unique link with friends, followers, or anyone interested in music production.</span>
+                                    </li>
+                                    <li className="flex gap-3">
+                                        <span className="font-bold text-green-400">2.</span>
+                                        <span>When someone signs up using your link, they're officially your referral.</span>
+                                    </li>
+                                    <li className="flex gap-3">
+                                        <span className="font-bold text-green-400">3.</span>
+                                        <span>Earn a <span className="font-bold text-white">20% commission</span> on their first purchase of beats or sound kits.</span>
+                                    </li>
+                                    <li className="flex gap-3">
+                                        <span className="font-bold text-green-400">4.</span>
+                                        <span>Once you reach the $100 threshold, cash out your earnings to your main ONDBEAT balance.</span>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
-                     <div className="mt-6 flex justify-center gap-4">
-                        <button className="p-3 bg-neutral-700 rounded-full hover:bg-blue-800"><Facebook size={20}/></button>
-                        <button className="p-3 bg-neutral-700 rounded-full hover:bg-sky-500"><Twitter size={20}/></button>
-                        <button className="p-3 bg-neutral-700 rounded-full hover:bg-green-600"><MessageCircle size={20}/></button>
-                    </div>
                 </div>
-                
-                <div>
-                     <h2 className="text-2xl font-bold mb-6">Your Referrals</h2>
-                     <div className="bg-[#1a1a1a] border border-neutral-800 rounded-xl overflow-hidden">
-                         <table className="w-full text-sm text-left text-neutral-300">
-                            <thead className="text-xs text-neutral-400 uppercase bg-neutral-900">
-                                <tr>
-                                    <th scope="col" className="px-6 py-3">Friend</th>
-                                    <th scope="col" className="px-6 py-3">Status</th>
-                                    <th scope="col" className="px-6 py-3 text-right">Reward</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {referrals.map((r, i) => (
-                                    <tr key={i} className="border-b border-neutral-700 hover:bg-neutral-800/50">
-                                        <td className="px-6 py-4 font-medium">{r.name}</td>
-                                        <td className="px-6 py-4">
-                                            <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                                                r.status === 'Signed Up' ? 'bg-blue-200 text-blue-800' :
-                                                r.status === 'Purchased a Beat' ? 'bg-green-200 text-green-800' :
-                                                'bg-yellow-200 text-yellow-800'
-                                            }`}>{r.status}</span>
-                                        </td>
-                                        <td className="px-6 py-4 text-right font-bold text-green-400">{r.reward}</td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
             </div>
         </>
     );
-}
+};
+
+export default AffiliateDashboardPage;
