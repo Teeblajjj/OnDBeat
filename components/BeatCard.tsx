@@ -1,11 +1,10 @@
-import { Play, Pause, Heart, ShoppingCart } from 'lucide-react';
+import { Play, Pause, Heart, ShoppingCart, Music } from 'lucide-react';
 
 interface Beat {
   id: number;
   title: string;
   producer: string;
   price: number;
-  cover: string;
   // Other beat properties...
 }
 
@@ -32,34 +31,48 @@ export default function BeatCard({ beat, isCurrent, isPlaying, onPlay, onAddToCa
 
   return (
     <div 
-        className="bg-[#181818] p-4 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer group" 
+        className="group relative rounded-lg overflow-hidden bg-[#181818] hover:bg-[#282828] transition-all duration-300 ease-in-out cursor-pointer"
         onClick={() => onClick(beat)}
     >
-        <div className="relative mb-4">
-            <img src={beat.cover} alt={beat.title} className="w-full h-auto aspect-square object-cover rounded-md" />
-            
-            <button 
-                onClick={handlePlayPause}
-                className={`absolute bottom-2 right-2 w-12 h-12 bg-green-500 text-black rounded-full flex items-center justify-center shadow-lg transform transition-all duration-200 ease-in-out 
-                    ${isCurrent ? 'opacity-100 scale-100' : 'opacity-0 scale-90 group-hover:opacity-100 group-hover:scale-100'}
-                `}
-            >
-                {isCurrent && isPlaying ? <Pause size={24} fill="black" /> : <Play size={24} fill="black" className="ml-1" />}
-            </button>
-        </div>
-
-        <div className="flex items-start justify-between gap-4">
-            <div>
-                <h3 className="text-white font-bold truncate transition-colors group-hover:text-green-400">{beat.title}</h3>
-                <p className="text-gray-400 text-sm truncate">{beat.producer}</p>
+        <div className="relative w-full aspect-square">
+            <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all duration-300 flex items-center justify-center">
+                <Music size={80} className="text-gray-500" />
             </div>
 
             <button 
-                onClick={handleAddToCart}
-                className="flex-shrink-0 bg-white/5 border border-white/10 text-white font-bold text-sm px-4 py-2 rounded-full hover:bg-white/10 hover:border-white/20 transition-all"
+                onClick={handlePlayPause}
+                className={`absolute bottom-4 left-4 w-14 h-14 bg-green-500 text-black rounded-full flex items-center justify-center shadow-2xl transform transition-all duration-300 ease-in-out 
+                    ${isCurrent ? 'opacity-100 scale-100' : 'opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100'}`
+                }
             >
-                ${beat.price}
+                {isCurrent && isPlaying ? <Pause size={28} fill="black" /> : <Play size={28} fill="black" className="ml-1" />}
             </button>
+            
+            <button
+                onClick={(e) => {
+                    e.stopPropagation();
+                    // Handle favorite logic
+                }}
+                className="absolute top-4 right-4 w-10 h-10 bg-black/40 text-white/70 hover:text-white hover:bg-black/60 rounded-full flex items-center justify-center transition-all"
+            >
+                <Heart size={20} />
+            </button>
+        </div>
+
+        <div className="p-4 space-y-2">
+            <h3 className="text-white font-bold text-lg truncate transition-colors group-hover:text-green-400">{beat.title}</h3>
+            <p className="text-gray-400 text-sm truncate">{beat.producer}</p>
+            
+            <div className="flex items-center justify-between pt-2">
+                <p className="text-white font-semibold text-lg">${beat.price}</p>
+                <button 
+                    onClick={handleAddToCart}
+                    className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm px-4 py-2 rounded-full transition-colors"
+                >
+                    <ShoppingCart size={16} />
+                    Add
+                </button>
+            </div>
         </div>
     </div>
   );

@@ -1,68 +1,64 @@
-import { useState, useRef, useEffect } from 'react';
-import { Menu, Search, ShoppingCart, User as UserIcon, Repeat, LogOut, ChevronDown } from 'lucide-react';
+import { Search, Bell, ChevronDown, User, Menu } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext';
+import Link from 'next/link';
 
-const Header = ({ onToggleMobileMenu, onCartClick, cartItems }) => {
-    const { user, openAuthModal, viewAsCreator, toggleView, logout } = useAuth();
-    const [dropdownOpen, setDropdownOpen] = useState(false);
-    const dropdownRef = useRef(null);
+const Header = () => {
+    const { user, viewAsCreator, toggleView, openAuthModal } = useAuth();
+    const { openCart, cartItems } = useCart();
 
-    // Close dropdown when clicking outside
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setDropdownOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [dropdownRef]);
+    const handleAuthClick = () => {
+        openAuthModal('login');
+    };
+
+    const cartItemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
     return (
-        <header className="sticky top-0 z-30 flex items-center justify-between bg-black/50 backdrop-blur-md px-4 sm:px-6 py-3">
+        <header className="bg-gradient-to-b from-neutral-900/60 to-transparent h-20 flex items-center justify-between px-4 md:px-8 sticky top-0 z-30 backdrop-blur-sm">
             <div className="flex items-center gap-4">
-                <button onClick={onToggleMobileMenu} className="md:hidden text-white">
+                <button className="md:hidden" >
                     <Menu />
                 </button>
-                <div className="relative flex-grow md:flex-grow-0">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={20}/>
-                    <input type="text" placeholder="Search for beats, artists, or genres" className="bg-neutral-800 border-transparent rounded-full pl-10 pr-4 py-2 text-white placeholder-neutral-500 w-full md:w-64 lg:w-96" />
+                <div className="hidden md:flex items-center gap-2 bg-neutral-800/50 rounded-full px-4 py-2 border border-transparent focus-within:border-green-500">
+                    <Search className="text-neutral-400" size={20}/>
+                    <input type="text" placeholder="Search..." className="bg-transparent focus:outline-none text-white"/>
                 </div>
             </div>
 
             <div className="flex items-center gap-4">
-                <button onClick={onCartClick} className="relative text-white p-2 rounded-full hover:bg-neutral-800">
-                    <ShoppingCart />
-                    {cartItems > 0 && <span className="absolute top-0 right-0 bg-green-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">{cartItems}</span>}
-                </button>
-
+                {user && user.isCreator && (
+                     <div className="flex items-center gap-2">
+                        <label htmlFor="view-toggle" className="text-sm font-medium text-neutral-300">Creator Mode</label>
+                        <div onClick={toggleView} className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors ${viewAsCreator ? 'bg-green-500' : 'bg-neutral-700'}`}>
+                            <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${viewAsCreator ? 'translate-x-6' : 'translate-x-1'}`}/>
+                        </div>
+                    </div>
+                )}
+               
                 {user ? (
-                    <div className="relative" ref={dropdownRef}>
-                        <button onClick={() => setDropdownOpen(!dropdownOpen)} className="flex items-center gap-2 text-white p-1 pr-2 rounded-full hover:bg-neutral-800">
-                            <div className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center font-bold">
-                                {user.name.charAt(0)}
-                            </div>
-                            <span className="hidden sm:inline font-semibold">{user.name}</span>
-                            <ChevronDown size={16} className={`transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+                     <div className="flex items-center gap-4">
+                        <button onClick={openCart} className="relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-300 hover:text-white"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                            {cartItemCount > 0 && 
+                                <span className="absolute -top-1 -right-2 bg-green-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                                    {cartItemCount}
+                                </span>
+                            }
                         </button>
-
-                        {dropdownOpen && (
-                            <div className="absolute right-0 mt-2 w-48 bg-neutral-800 border border-neutral-700 rounded-lg shadow-lg overflow-hidden">
-                                <button onClick={() => { toggleView(); setDropdownOpen(false); }} className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-neutral-300 hover:bg-neutral-700">
-                                    <Repeat size={16} />
-                                    <span>Switch to {viewAsCreator ? 'User' : 'Creator'}</span>
-                                </button>
-                                <button onClick={() => { logout(); setDropdownOpen(false); }} className="w-full text-left flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-neutral-700">
-                                    <LogOut size={16} />
-                                    <span>Logout</span>
-                                </button>
-                            </div>
-                        )}
+                        <Link href={viewAsCreator ? '/creator/dashboard' : '/user/profile'} className="flex items-center gap-2 bg-neutral-800/80 rounded-full p-1 pr-3 hover:bg-neutral-700/80 transition-colors">
+                            <User size={24} className="bg-neutral-600 rounded-full p-0.5"/>
+                            <span className="font-semibold text-sm hidden sm:block">{user.username}</span>
+                            <ChevronDown size={18} className="text-neutral-400"/>
+                        </Link>
                     </div>
                 ) : (
                     <div className="flex items-center gap-2">
-                        <button onClick={() => openAuthModal('signin')} className="text-neutral-400 font-bold hover:text-white">Sign In</button>
-                        <button onClick={() => openAuthModal('signup')} className="bg-white text-black font-bold py-2 px-4 rounded-full">Sign Up</button>
+                        <button onClick={() => openAuthModal('signup')} className="hidden md:block bg-transparent text-neutral-300 font-bold py-2 px-4 rounded-full hover:text-white transition-colors">
+                            Sign Up
+                        </button>
+                        <button onClick={handleAuthClick} className="bg-white text-black font-bold py-2 px-6 rounded-full hover:bg-neutral-200 transition-colors">
+                            Log In
+                        </button>
                     </div>
                 )}
             </div>

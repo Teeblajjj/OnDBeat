@@ -1,6 +1,8 @@
 
 import { AppProps } from 'next/app';
 import { AuthProvider } from '../context/AuthContext';
+import { CartProvider } from '../context/CartContext';
+import { PlayerProvider } from '../context/PlayerContext';
 import AuthModal from '../components/AuthModal';
 import { useAuth } from '../context/AuthContext';
 import '../styles/globals.css';
@@ -23,7 +25,11 @@ const AppContent = ({ Component, pageProps }: AppProps) => {
 function MyApp({ Component, pageProps }: AppProps) {
   return (
     <AuthProvider>
-      <AppContent Component={Component} pageProps={pageProps} />
+      <CartProvider>
+        <PlayerProvider>
+          <AppContent Component={Component} pageProps={pageProps} />
+        </PlayerProvider>
+      </CartProvider>
     </AuthProvider>
   );
 }

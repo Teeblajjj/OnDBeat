@@ -20,13 +20,13 @@ interface CartItem {
 interface CartModalProps {
   isOpen: boolean;
   onClose: () => void;
-  cartItems: CartItem[];
+  cartItems?: CartItem[];
   onRemoveItem: (id: number) => void;
   onUpdateQuantity: (id: number, quantity: number) => void;
   onCheckout: () => void;
 }
 
-export default function CartModal({ isOpen, onClose, cartItems, onRemoveItem, onUpdateQuantity, onCheckout }: CartModalProps) {
+export default function CartModal({ isOpen, onClose, cartItems = [], onRemoveItem, onUpdateQuantity, onCheckout }: CartModalProps) {
     const subtotal = cartItems.reduce((acc, item) => acc + item.beat.licenses[item.licenseIndex].price * item.quantity, 0);
 
     return (

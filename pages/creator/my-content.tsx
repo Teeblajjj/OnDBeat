@@ -49,7 +49,7 @@ const MyContentPage = () => {
           <Header 
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
-            onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
+            onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenu-Open)}
             onCartClick={() => {}}
             cartItems={0}
           />
@@ -57,7 +57,7 @@ const MyContentPage = () => {
           <main className="bg-gradient-to-b from-purple-900/30 to-[#121212] p-4 sm:p-8">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
                 <h1 className="text-3xl sm:text-4xl font-bold mb-4 sm:mb-0">My Content</h1>
-                <Link href="/creator/upload" legacyBehavior>
+                <Link href="/creator" legacyBehavior>
                     <a className="bg-green-600 text-white font-bold py-2 px-4 rounded-full flex items-center space-x-2 hover:bg-green-700 transition-colors">
                         <Plus size={20}/>
                         <span>Upload</span>
