@@ -1,20 +1,36 @@
-import { Search, Bell, ChevronDown, User, Menu } from 'lucide-react';
+import { Search, ChevronDown, User, Menu, History, Settings, UserPlus, LogOut } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import Link from 'next/link';
+import { useState, useEffect, useRef } from 'react';
 
 const Header = () => {
-    const { user, viewAsCreator, toggleView, openAuthModal } = useAuth();
+    const { user, viewAsCreator, toggleView, openAuthModal, logout } = useAuth();
     const { openCart, cartItems } = useCart();
+    const [isDropdownOpen, setDropdownOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     const handleAuthClick = () => {
-        openAuthModal('login');
+        openAuthModal('signin');
     };
+
+    const toggleDropdown = () => setDropdownOpen(!isDropdownOpen);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setDropdownOpen(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
 
     const cartItemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
     return (
-        <header className="bg-gradient-to-b from-neutral-900/60 to-transparent h-20 flex items-center justify-between px-4 md:px-8 sticky top-0 z-30 backdrop-blur-sm">
+        <header className="bg-gradient-to-b from-neutral-900/60 to-transparent h-20 flex items-center justify-between px-4 md:px-8 sticky top-0 z-40 backdrop-blur-sm">
             <div className="flex items-center gap-4">
                 <button className="md:hidden" >
                     <Menu />
@@ -45,11 +61,23 @@ const Header = () => {
                                 </span>
                             }
                         </button>
-                        <Link href={viewAsCreator ? '/creator/dashboard' : '/user/profile'} className="flex items-center gap-2 bg-neutral-800/80 rounded-full p-1 pr-3 hover:bg-neutral-700/80 transition-colors">
-                            <User size={24} className="bg-neutral-600 rounded-full p-0.5"/>
-                            <span className="font-semibold text-sm hidden sm:block">{user.username}</span>
-                            <ChevronDown size={18} className="text-neutral-400"/>
-                        </Link>
+                        <div className="relative" ref={dropdownRef}>
+                            <button onClick={toggleDropdown} className="flex items-center gap-2 bg-neutral-800/80 rounded-full p-1 pr-2 hover:bg-neutral-700/80 transition-colors">
+                                <User size={28} className="bg-neutral-600 rounded-full p-1"/>
+                                <span className="font-semibold text-sm hidden sm:block">{user.name}</span>
+                                <ChevronDown size={18} className={`text-neutral-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}/>
+                            </button>
+                            {isDropdownOpen && (
+                                <div className="absolute right-0 mt-2 w-48 bg-[#1c1c1c] border border-neutral-800 rounded-lg shadow-lg py-1 z-50">
+                                    <Link href="/user/profile" className="flex items-center gap-3 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-700/60"><User size={16}/>My Profile</Link>
+                                    <Link href="/user/history" className="flex items-center gap-3 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-700/60"><History size={16}/>History</Link>
+                                    <Link href="/user/edit-profile" className="flex items-center gap-3 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-700/60"><Settings size={16}/>Settings</Link>
+                                    <Link href="/user/invite-a-friend" className="flex items-center gap-3 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-700/60"><UserPlus size={16}/>Invite a Friend</Link>
+                                    <div className="border-t border-neutral-800 my-1"></div>
+                                    <button onClick={logout} className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10"><LogOut size={16}/>Logout</button>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 ) : (
                     <div className="flex items-center gap-2">
@@ -57,7 +85,7 @@ const Header = () => {
                             Sign Up
                         </button>
                         <button onClick={handleAuthClick} className="bg-white text-black font-bold py-2 px-6 rounded-full hover:bg-neutral-200 transition-colors">
-                            Log In
+                            Sign In
                         </button>
                     </div>
                 )}
