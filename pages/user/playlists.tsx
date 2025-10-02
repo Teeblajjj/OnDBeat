@@ -32,12 +32,7 @@ const PlaylistsPage = () => {
         {/* Page Header */}
         <div className="flex items-center justify-between mb-10">
           <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">My Playlists</h1>
-          <button 
-            onClick={openCreateModal}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 px-5 py-2.5 rounded-xl font-semibold text-white transition-colors shadow-md"
-          >
-            <Plus size={18} /> New Playlist
-          </button>
+          
         </div>
 
         {/* Playlist Grid */}

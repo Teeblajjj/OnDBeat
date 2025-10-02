@@ -1,93 +1,111 @@
 import Head from 'next/head';
 import { useState } from 'react';
-import Sidebar from '../../components/Sidebar';
-import Header from '../../components/Header';
-import { Rocket, Flame, Sparkles, CheckCircle } from 'lucide-react';
-
-const PromotionCard = ({ title, price, features, isPopular, icon }) => (
-    <div className={`relative bg-neutral-900/60 p-6 rounded-2xl border transition-all duration-300 transform hover:-translate-y-1 ${isPopular ? 'border-2 border-green-500 bg-gradient-to-br from-green-900/30 via-neutral-900 to-neutral-900 shadow-[0_0_20px_rgba(49,196,141,0.2)]' : 'border-neutral-800 hover:border-green-600/50'}`}>
-        {isPopular && (
-            <span className="absolute top-0 -translate-y-1/2 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-4 py-1 rounded-full shadow-lg">Most Popular</span>
-        )}
-        <div className="flex flex-col items-center text-center">
-            <div className="mb-4 text-green-400">{icon}</div>
-            <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
-            <p className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-white to-neutral-400 mb-4">{price}</p>
-            <ul className="space-y-3 text-neutral-300 text-sm mb-6">
-                {features.map((feature, index) => (
-                    <li key={index} className="flex items-center gap-2">
-                        <CheckCircle size={16} className="text-green-500 flex-shrink-0" />
-                        <span>{feature}</span>
-                    </li>
-                ))}
-            </ul>
-            <button className={`w-full mt-auto font-bold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 ${isPopular ? 'bg-gradient-to-r from-green-500 to-teal-500 hover:from-green-400 hover:to-teal-400 text-white shadow-[0_4px_15px_rgba(49,196,141,0.3)]' : 'bg-green-600/20 hover:bg-green-600/40 text-green-300 border border-green-600/50'}`}>
-                Select Plan
-            </button>
-        </div>
-    </div>
-);
+import Layout from '../../components/Layout';
+import MetricCard from '../../components/MetricCard';
+import { Rocket, Sparkles, TrendingUp, DollarSign, Download, Users, Heart, Play, Search, LayoutGrid, ChevronDown } from 'lucide-react';
+import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 const PromotePage = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [contentType, setContentType] = useState('Everything');
 
-  const packages = [
-      {
-          title: 'Basic',
-          price: '$10',
-          features: ['7 days on the homepage', 'Basic analytics', 'Standard support'],
-          isPopular: false,
-          icon: <Flame size={32}/>
-      },
-      {
-          title: 'Pro',
-          price: '$25',
-          features: ['30 days on homepage', 'Featured in newsletter', 'Detailed analytics', 'Priority support'],
-          isPopular: true,
-          icon: <Rocket size={32}/>
-      },
-      {
-          title: 'Enterprise',
-          price: '$50',
-          features: ['30 days on homepage & socials', 'Dedicated newsletter feature', 'Full analytics suite', '24/7 dedicated support'],
-          isPopular: false,
-          icon: <Sparkles size={32}/>
-      }
+  // Mock data for global performance metrics
+  const globalMetrics = [
+    { icon: <Play size={20} />, title: 'Plays', value: '-' },
+    { icon: <Sparkles size={20} />, title: 'Impressions', value: '-' },
+    { icon: <TrendingUp size={20} />, title: 'Sales Conversions', value: '-' },
+    { icon: <DollarSign size={20} />, title: 'Earnings', value: '-' },
+    { icon: <Download size={20} />, title: 'Free Downloads', value: '-' },
+    { icon: <Users size={20} />, title: 'Followers Gained', value: '-' },
+    { icon: <Heart size={20} />, title: 'Likes', value: '-' },
+    { icon: <LayoutGrid size={20} />, title: 'Campaigns Created', value: 0, description: 'Click below to start.' },
   ];
 
+  // Mock campaigns data (empty for now, to show empty state)
+  const campaigns: any[] = []; // This array would be populated with actual campaign data
+
   return (
-    <>
+    <Layout>
       <Head>
-        <title>Promote - ONDBEAT</title>
+        <title>Promote - ONDBEAT Creator Studio</title>
       </Head>
 
-      <div className="min-h-screen bg-[#101010] text-white flex">
-        <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
-        
-        <div className="flex-1 md:ml-60">
-          <Header 
-            onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
-          />
-
-          <main className="p-4 md:p-8">
-            <div className="relative text-center mb-12 py-10 px-6 bg-neutral-900/50 rounded-2xl border border-neutral-800/80 overflow-hidden">
-                <div className="absolute inset-0 bg-grid-green-500/10 [mask-image:linear-gradient(to_bottom,white_20%,transparent_100%)]"></div>
-                <div className="relative">
-                    <div className="inline-block bg-gradient-to-r from-green-500 to-teal-500 p-3 rounded-full mb-4 shadow-[0_0_20px_rgba(49,196,141,0.4)]">
-                        <Rocket size={40} className="text-white"/>
-                    </div>
-                    <h1 className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-green-400 to-teal-400 mb-2">Amplify Your Sound</h1>
-                    <p className="text-lg text-neutral-300 max-w-2xl mx-auto">Get your music in front of thousands of potential buyers by featuring it across the ONDBEAT marketplace.</p>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                {packages.map(pkg => <PromotionCard key={pkg.title} {...pkg} />)}
-            </div>
-          </main>
+      <div className="p-4 md:p-8">
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold text-white">Promote</h1>
+          <Link href="/creator/create-campaign" legacyBehavior>
+            <a className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-black font-semibold py-2 px-4 rounded-lg transition-colors">
+              <Rocket size={18} /> Create campaign
+            </a>
+          </Link>
         </div>
+
+        {/* Global Performance Section */}
+        <section className="mb-10">
+          <h2 className="text-xl font-bold text-white mb-4">Campaigns global performance</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {globalMetrics.map((metric, index) => (
+              <MetricCard key={index} {...metric} />
+            ))}
+          </div>
+        </section>
+
+        {/* Campaigns Management Section */}
+        <section>
+          <h2 className="text-xl font-bold text-white mb-4">Campaigns</h2>
+          
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+            <div className="relative w-full sm:w-auto flex-grow">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
+              <input 
+                type="text"
+                placeholder="Start typing to search..."
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg py-2 pl-10 pr-4 text-sm text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-green-500"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <div className="relative w-full sm:w-auto">
+              <select
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:ring-1 focus:ring-green-500 appearance-none pr-8"
+                value={contentType}
+                onChange={(e) => setContentType(e.target.value)}
+              >
+                <option value="Everything">Content type: Everything</option>
+                <option value="Beat">Content type: Beat</option>
+                <option value="SoundKit">Content type: SoundKit</option>
+                <option value="Collection">Content type: Collection</option>
+              </select>
+              <ChevronDown size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none" />
+            </div>
+          </div>
+
+          {campaigns.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="bg-neutral-900/50 p-10 rounded-2xl border border-neutral-800/80 flex flex-col items-center justify-center text-center mt-8"
+            >
+              <Rocket size={60} className="text-neutral-600 mb-4" />
+              <h3 className="text-xl font-bold text-white mb-2">No campaigns created yet</h3>
+              <p className="text-neutral-400 mb-6">You haven't launched any promotion campaigns. Click below to start getting your music heard!</p>
+              <Link href="/creator/create-campaign" legacyBehavior>
+                <a className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-black font-semibold py-2 px-5 rounded-lg transition-colors">
+                  <Rocket size={18} /> Create new campaign
+                </a>
+              </Link>
+            </motion.div>
+          ) : (
+            // Campaign listings would go here
+            <div>
+              {/* Map over campaigns to display them */}
+            </div>
+          )}
+        </section>
       </div>
-    </>
+    </Layout>
   );
 };
 
