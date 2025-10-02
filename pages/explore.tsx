@@ -1,136 +1,192 @@
-import Head from 'next/head'
-import { useState, useRef } from 'react'
-import Sidebar from '../components/Sidebar'
-import Header from '../components/Header'
-import PlayerBar from '../components/PlayerBar'
-import CartModal from '../components/CartModal'
-import { ChevronLeft, ChevronRight, Play, ShoppingCart } from 'lucide-react'
+
+import Head from 'next/head';
+import { useState } from 'react';
+import { Search, ChevronDown, ThumbsUp, BarChart, FileText, DollarSign, Music, Zap, Sliders, RefreshCw, LayoutGrid, List, PlayIcon } from 'lucide-react';
+import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
+import PlayerBar from '../components/PlayerBar';
+import CartModal from '../components/CartModal';
 
 // --- Dummy Data ---
-const genres = [
-    { name: "Hip Hop", color: "bg-red-500", image: "https://images.unsplash.com/photo-1593699891482-b7512a153297?w=200&q=80" },
-    { name: "R&B", color: "bg-blue-500", image: "https://images.unsplash.com/photo-1588247866372-de3a1c8b353a?w=200&q=80" },
-    { name: "Pop", color: "bg-pink-500", image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=200&q=80" },
-    { name: "Electronic", color: "bg-purple-500", image: "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=200&q=80" },
-    { name: "Drill", color: "bg-yellow-500", image: "https://images.unsplash.com/photo-1627192233909-51c4aaa4a6a5?w=200&q=80" },
-    { name: "Afrobeats", color: "bg-green-500", image: "https://images.unsplash.com/photo-1604313520624-91896887372d?w=200&q=80" },
+const mainCategories = [
+    { name: 'New & Notable', icon: ThumbsUp },
+    { name: 'Top Charts', icon: BarChart },
+    { name: 'Exclusive', icon: FileText },
+    { name: 'Under $50', icon: DollarSign },
+    { name: 'Hip-Hop', icon: Music },
+    { name: 'Trap', icon: Music },
+    { name: 'R&B', icon: Music },
+    { name: 'Pop', icon: Music },
+    { name: 'Drill', icon: Music },
 ];
 
-const moods = [
-    { name: "Chill", image: "https://images.unsplash.com/photo-1499415479124-73d324974242?w=400&q=80" },
-    { name: "Energetic", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&q=80" },
-    { name: "Focused", image: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&q=80" },
-    { name: "Melancholic", image: "https://images.unsplash.com/photo-1456428199391-a3b1cb8e35a3?w=400&q=80" },
-    { name: "Uplifting", image: "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=400&q=80" },
-    { name: "Introspective", image: "https://images.unsplash.com/photo-1531338700946-76e4c7ba1200?w=400&q=80" },
+const popularTags = ['808', 'trap', 'beats', 'hip hop', 'rnb', 'drake', 'rap', 'boom bap', 'drill', 'lil baby', 'type beat', 'future', 'pop'];
+
+const beats = [
+  { id: 1, title: "Sunset Drive", producer: "Metro Boomin", price: 35.00 },
+  { id: 2, title: "Ocean Eyes", producer: "Billie Eilish", price: 45.00 },
+  { id: 3, title: "City Lights", producer: "The Weeknd", price: 55.00 },
+  { id: 4, title: "Desert Rose", producer: "Sting", price: 25.00 },
+  { id: 5, title: "Forest Gump", producer: "Frank Ocean", price: 65.00 },
+  { id: 6, title: "Night Owl", producer: "Drake", price: 75.00 },
 ];
 
-const featuredPlaylists = [
-    { name: "Top 100 Nigeria", description: "The biggest tracks in Nigeria right now.", cover: "https://i.scdn.co/image/ab67706f00000002183c7343e06a3821096b05b3" },
-    { name: "Afrobeats Hits", description: "The best in afrobeats, updated weekly.", cover: "https://i.scdn.co/image/ab67706f00000002b55b65f24c0c802b3765b21c" },
-];
-
-const newReleases = [
-  { id: 1, title: "Sunset Drive", producer: "Metro Boomin", price: 35, cover: "https://images.unsplash.com/photo-1516999654410-482a4c2fee14?w=400&q=80" },
-  { id: 2, title: "Ocean Eyes", producer: "Billie Eilish", price: 45, cover: "https://images.unsplash.com/photo-1577741313423-3975395d865b?w=400&q=80" },
-  { id: 3, title: "City Lights", producer: "The Weeknd", price: 55, cover: "https://images.unsplash.com/photo-1519892338195-e1b93931f681?w=400&q=80" },
-  { id: 4, title: "Desert Rose", producer: "Sting", price: 25, cover: "https://images.unsplash.com/photo-1470104432727-99338f45a277?w=400&q=80" },
-  { id: 5, title: "Forest Gump", producer: "Frank Ocean", price: 65, cover: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80" },
-  { id: 6, title: "Night Owl", producer: "Drake", price: 75, cover: "https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=400&q=80" },
-];
 
 // --- Page Component ---
 export default function Explore() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [cartModalOpen, setCartModalOpen] = useState(false);
-  const [cartContents] = useState<any[]>([]);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [cartModalOpen, setCartModalOpen] = useState(false);
+    const [cartContents] = useState<any[]>([]);
+    const [activeCategory, setActiveCategory] = useState('New & Notable');
+    const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
-  return (
-    <>
-      <Head>
-        <title>Explore - ONDBeat</title>
-      </Head>
+    return (
+        <>
+            <Head>
+                <title>Explore Beats - ONDBEAT</title>
+            </Head>
 
-      <div className="min-h-screen bg-black text-white">
-        <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
-        
-        <div className="md:ml-56">
-          <Header 
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
-            onCartClick={() => setCartModalOpen(true)}
-            cartItems={cartContents.length}
-          />
+            <div className="min-h-screen bg-black text-white flex">
+                <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
+                
+                <div className="flex-grow md:ml-60">
+                    <Header 
+                        onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        onCartClick={() => setCartModalOpen(true)}
+                        cartItems={cartContents.length}
+                    />
 
-          <main className="p-4 md:p-8 bg-gradient-to-b from-neutral-900 to-[#121212]">
-            <div className="max-w-full mx-auto">
-              <h1 className="text-4xl font-extrabold text-white mb-8">Explore</h1>
+                    <main className="p-4 md:p-6 lg:p-8">
+                        <div className="max-w-full mx-auto">
+                            
+                            {/* --- Main Categories Bar --- */}
+                            <section className="mb-6">
+                                <h2 className="text-2xl font-bold text-white mb-4">New & Notable</h2>
+                                <div className="flex items-center space-x-2 overflow-x-auto pb-4 -mx-4 px-4">
+                                    {mainCategories.map((cat, index) => (
+                                        <CategoryButton 
+                                            key={index} 
+                                            category={cat} 
+                                            isActive={activeCategory === cat.name}
+                                            onClick={() => setActiveCategory(cat.name)}
+                                        />
+                                    ))}
+                                </div>
+                            </section>
 
-              {/* Featured Playlists */}
-              <section className="mb-12">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                      {featuredPlaylists.map(playlist => (
-                          <div key={playlist.name} className="bg-neutral-800/50 hover:bg-neutral-700/70 transition-colors rounded-lg flex items-center gap-4 cursor-pointer group">
-                              <img src={playlist.cover} alt={playlist.name} className="w-20 h-20 md:w-24 md:h-24 object-cover rounded-l-lg" />
-                              <div className="flex-grow pr-4">
-                                <h3 className="text-white font-bold text-base md:text-lg truncate">{playlist.name}</h3>
-                                <p className="text-gray-400 text-xs md:text-sm truncate">{playlist.description}</p>
-                              </div>
-                               <button className="mr-4 w-12 h-12 bg-green-500 text-black rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:scale-105 shadow-lg flex-shrink-0">
-                                  <Play size={24} className="ml-1" />
-                              </button>
-                          </div>
-                      ))}
-                  </div>
-              </section>
+                            {/* --- Advanced Filters --- */}
+                            <section className="mb-8 p-4 bg-[#121212] rounded-lg">
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                                    <div className="md:col-span-4 lg:col-span-3">
+                                        <div className="relative">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={18} />
+                                            <input 
+                                                type="text"
+                                                placeholder="Search for tags"
+                                                className="w-full bg-neutral-800 border border-neutral-700 rounded-full py-2 pl-10 pr-4 text-sm text-white placeholder-neutral-400 focus:outline-none focus:ring-1 focus:ring-green-500"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="md:col-span-8 lg:col-span-9 overflow-x-hidden">
+                                        <div className="flex items-center gap-2 -mx-4 px-4 overflow-x-auto pb-2">
+                                            {popularTags.map(tag => (
+                                                <button key={tag} className="flex-shrink-0 text-sm bg-neutral-700/50 hover:bg-neutral-600/70 text-neutral-300 px-3 py-1 rounded-full transition">{tag}</button>
+                                            ))}
+                                            <button className="flex-shrink-0 flex items-center gap-2 text-sm text-neutral-300 hover:text-white"><RefreshCw size={14} /> Refresh</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="mt-4 pt-4 border-t border-neutral-800 flex flex-wrap items-center gap-4">
+                                    <FilterDropdown text="Genre" />
+                                    <FilterDropdown text="Category" />
+                                    <FilterDropdown text="Price" />
+                                    <FilterDropdown text="Mood" />
+                                    <FilterDropdown text="Instruments" />
+                                    <div className="flex-grow"></div>
+                                    <div className="flex items-center gap-2">
+                                        <button onClick={() => setViewMode('list')} className={`p-2 rounded-md ${viewMode === 'list' ? 'bg-green-500 text-black' : 'bg-neutral-800 hover:bg-neutral-700'}`}><List size={20}/></button>
+                                        <button onClick={() => setViewMode('grid')} className={`p-2 rounded-md ${viewMode === 'grid' ? 'bg-green-500 text-black' : 'bg-neutral-800 hover:bg-neutral-700'}`}><LayoutGrid size={20}/></button>
+                                    </div>
+                                </div>
+                            </section>
 
-              {/* Genres */}
-              <section className="mb-12">
-                 <h2 className="text-2xl font-bold text-white mb-4 hover:underline cursor-pointer">Browse all</h2>
-                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
-                    {genres.map(genre => (
-                        <div key={genre.name} className={`${genre.color} aspect-square rounded-lg p-4 relative overflow-hidden cursor-pointer transition-transform hover:scale-105`}>
-                            <h3 className="text-white font-bold text-2xl">{genre.name}</h3>
-                            <img src={genre.image} alt={genre.name} className="w-24 h-24 object-cover absolute -right-4 -bottom-4 transform rotate-25"/>
+                            {/* --- Beats Grid / List --- */}
+                            <section>
+                                {viewMode === 'grid' ? (
+                                    <div className="grid gap-6 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                                        {beats.map(beat => (
+                                            <BeatCard key={beat.id} beat={beat} />
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {beats.map(beat => (
+                                            <ListViewItem key={beat.id} beat={beat} />
+                                        ))}
+                                    </div>
+                                )}
+                            </section>
                         </div>
-                    ))}
-                 </div>
-              </section>
+                    </main>
 
-              {/* New Releases */}
-               <section>
-                <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-2xl font-bold text-white hover:underline cursor-pointer">New Releases</h2>
-                    <span className="text-sm font-bold text-gray-400 hover:underline cursor-pointer">Show all</span>
+                    <PlayerBar isPlaying={false} onPlayPause={() => {}} currentTrack={null} progress={0} />
+                    <CartModal isOpen={cartModalOpen} onClose={() => setCartModalOpen(false)} cartItems={cartContents} onRemoveItem={() => {}} onUpdateQuantity={() => {}} onCheckout={() => {}} />
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
-                    {newReleases.map(beat => (
-                        <div key={beat.id} className="bg-[#181818] p-4 rounded-lg hover:bg-[#282828] transition-colors cursor-pointer group">
-                            <div className="relative mb-4">
-                                <img src={beat.cover} alt={beat.title} className="w-full h-auto aspect-square object-cover rounded-md" />
-                                <button className="absolute bottom-2 right-2 w-12 h-12 bg-green-500 text-black rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity transform group-hover:scale-105">
-                                    <Play size={24} className="ml-1" />
-                                </button>
-                            </div>
-                            <h3 className="text-white font-bold truncate">{beat.title}</h3>
-                            <p className="text-gray-400 text-sm truncate mb-2">{beat.producer}</p>
-                            <button className="w-full bg-white/10 hover:bg-white/20 text-white font-bold py-2 px-3 rounded-full flex items-center justify-center gap-2 text-sm">
-                              <ShoppingCart size={16} />
-                              <span>${beat.price}</span>
-                            </button>
-                        </div>
-                    ))}
-                </div>
-              </section>
             </div>
-          </main>
-
-          <PlayerBar isPlaying={false} onPlayPause={() => {}} currentTrack={null} progress={0} />
-          <CartModal isOpen={cartModalOpen} onClose={() => setCartModalOpen(false)} cartItems={cartContents} onRemoveItem={() => {}} onUpdateQuantity={() => {}} onCheckout={() => {}} />
-        </div>
-      </div>
-    </>
-  )
+        </>
+    );
 }
+
+const CategoryButton = ({ category, isActive, onClick }) => {
+    const Icon = category.icon;
+    return (
+        <button 
+            onClick={onClick}
+            className={`flex flex-col items-center justify-center w-28 h-28 p-2 rounded-lg transition-colors flex-shrink-0 ${isActive ? 'bg-green-500/80 text-white' : 'bg-[#181818] hover:bg-[#282828]'}`}
+        >
+            <Icon size={32} className="mb-2" />
+            <span className="text-sm font-bold text-center">{category.name}</span>
+        </button>
+    );
+};
+
+const FilterDropdown = ({ text }) => (
+    <button className="flex items-center gap-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-full px-4 py-1.5 text-sm font-medium text-white transition">
+        <span>{text}</span>
+        <ChevronDown size={16} />
+    </button>
+);
+
+const BeatCard = ({ beat }) => (
+    <div className="bg-transparent rounded-lg overflow-hidden group transition-all duration-300">
+        <div className="relative">
+            <div className="aspect-square bg-neutral-800 rounded-lg flex items-center justify-center">
+                 <Music size={64} className="text-neutral-600" />
+            </div>
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
+                <button className="w-10 h-10 bg-green-500/80 backdrop-blur-sm text-black rounded-full flex items-center justify-center transform transition-transform hover:scale-110">
+                    {/* Play icon here */}
+                    <PlayIcon size={26} className="text-neutral-100" />
+                </button>
+            </div>
+        </div>
+        <div className="mt-2">
+            <h3 className="font-semibold text-white text-sm truncate">{beat.title}</h3>
+            <p className="text-xs text-neutral-400 truncate">{beat.producer}</p>
+            <p className="text-sm font-bold text-green-400 mt-1">${beat.price.toFixed(2)}</p>
+        </div>
+    </div>
+);
+
+const ListViewItem = ({ beat }) => (
+    <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-[#181818] transition-colors">
+        <div className="w-12 h-12 bg-neutral-800 rounded-md flex-shrink-0 flex items-center justify-center">
+            <Music size={24} className="text-neutral-600" />
+        </div>
+        <div className="flex-grow grid grid-cols-3 items-center gap-4">
+            <h3 className="font-semibold text-white truncate">{beat.title}</h3>
+            <p className="text-sm text-neutral-400 truncate">{beat.producer}</p>
+            <p className="text-sm font-bold text-green-400 justify-self-end">${beat.price.toFixed(2)}</p>
+        </div>
+    </div>
+);
