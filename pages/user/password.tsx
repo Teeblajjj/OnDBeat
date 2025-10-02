@@ -1,6 +1,10 @@
 import Head from 'next/head';
+import { useState } from 'react';
+import toast from 'react-hot-toast';
 import { User, Lock, Share2, Bell } from 'lucide-react';
 import Layout from '../../components/Layout';
+import { auth } from '../../lib/firebase'; // Direct import of auth
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 
 const InputField = ({ label, type, placeholder, value, onChange, icon: Icon }) => (
     <div className="flex flex-col gap-2">
@@ -52,17 +56,88 @@ const SettingsLayout = ({ children, activeTab }) => {
 }
 
 export default function PasswordPage() {
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleUpdatePassword = async () => {
+        setLoading(true);
+
+        const user = auth.currentUser; // Using the live user from the auth instance
+
+        if (!user || !user.email) {
+            toast.error("You must be logged in to update your password.");
+            setLoading(false);
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            toast.error("New passwords don't match.");
+            setLoading(false);
+            return;
+        }
+
+        try {
+            const credential = EmailAuthProvider.credential(user.email, currentPassword);
+            await reauthenticateWithCredential(user, credential);
+            await updatePassword(user, newPassword);
+            
+            toast.success('Password updated successfully!');
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+        } catch (error) {
+            console.error("Password Update Error:", error);
+            if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+                toast.error('Incorrect current password. Please try again.');
+            } else {
+                toast.error('An unexpected error occurred. Please try again.');
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
         <SettingsLayout activeTab="password">
             <div className="bg-[#121212] border border-neutral-800/80 rounded-xl p-6 sm:p-8">
                 <h1 className="text-2xl font-bold text-white mb-6">Password</h1>
                 <div className="space-y-6">
-                    <InputField label="Current Password" type="password" placeholder="Enter your current password" icon={Lock} />
-                    <InputField label="New Password" type="password" placeholder="Enter your new password" icon={Lock} />
-                    <InputField label="Confirm New Password" type="password" placeholder="Confirm your new password" icon={Lock} />
+                    <InputField 
+                        label="Current Password" 
+                        type="password" 
+                        placeholder="Enter your current password" 
+                        icon={Lock} 
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                    />
+                    <InputField 
+                        label="New Password" 
+                        type="password" 
+                        placeholder="Enter your new password" 
+                        icon={Lock}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                    <InputField 
+                        label="Confirm New Password" 
+                        type="password" 
+                        placeholder="Confirm your new password" 
+                        icon={Lock}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                    />
                 </div>
+
                  <div className="flex justify-end pt-8">
-                    <button className="bg-green-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-green-500 transition-all shadow-md hover:shadow-green-500/20">Update Password</button>
+                    <button 
+                        onClick={handleUpdatePassword}
+                        disabled={loading}
+                        className="bg-green-600 text-white font-bold py-2.5 px-6 rounded-lg hover:bg-green-500 transition-all shadow-md hover:shadow-green-500/20 disabled:bg-neutral-600 disabled:cursor-not-allowed"
+                    >
+                        {loading ? 'Updating...' : 'Update Password'}
+                    </button>
                 </div>
             </div>
         </SettingsLayout>

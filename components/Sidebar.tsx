@@ -27,13 +27,13 @@ import { useAuth } from '../context/AuthContext';
 const mainNavLinks = [
     { icon: Home, label: "Home", href: "/" },
     { icon: Compass, label: "Explore", href: "/explore" },
+    { icon: Users, label: "Community", href: "/community" },
 ];
 
 const userLibraryLinks = [
-    { icon: Library, label: "Purchased", href: "/user/purchased" },
+    { icon: Library, label: "Purchased", href: "/user/orders" },
     { icon: Heart, label: "Favorites", href: "/user/favorites" },
     { icon: ListMusic, label: "Playlists", href: "/user/playlists" },
-    { icon: Users, label: "Collaborations", href: "/user/collaborations" },
 ];
 
 const creatorNavLinks = [

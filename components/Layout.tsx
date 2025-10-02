@@ -6,6 +6,7 @@ import CartModal from './CartModal';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useRouter } from 'next/router';
+import { Toaster } from 'react-hot-toast';
 
 const Layout = ({ children }) => {
     const { user } = useAuth();
@@ -33,6 +34,16 @@ const Layout = ({ children }) => {
 
     return (
         <div className={`min-h-screen ${backgroundClass} text-white`}>
+            <Toaster 
+                position="top-center"
+                reverseOrder={false}
+                toastOptions={{
+                    style: {
+                        background: '#333',
+                        color: '#fff',
+                    },
+                }}
+            />
             <div className="flex">
                 <Sidebar />
                 <div className="flex-1 md:ml-60">

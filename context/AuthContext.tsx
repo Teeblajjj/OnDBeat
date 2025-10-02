@@ -12,7 +12,6 @@ interface UserProfile {
     displayName: string;
     isCreator: boolean;
     photoURL?: string;
-    bio?: string;
     socials?: { 
         twitter?: string;
         instagram?: string;
@@ -21,6 +20,12 @@ interface UserProfile {
     followers: number;
     following: number;
     createdAt: number;
+    firstName?: string;
+    lastName?: string;
+    pro?: string;
+    ipi?: string;
+    location?: string;
+    biography?: string;
 }
 
 interface AuthContextType {
@@ -105,10 +110,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         isCreator: false,
         createdAt: Date.now(),
         photoURL: '',
-        bio: 'Welcome to my Ondbeat profile!', // Default bio
         socials: {},
         followers: 0,
         following: 0,
+        firstName: '',
+        lastName: '',
+        pro: '',
+        ipi: '',
+        location: '',
+        biography: 'Welcome to my Ondbeat profile!',
       };
 
       await setDoc(doc(db, 'users', uid), newUserProfile);

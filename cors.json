@@ -1,0 +1,14 @@
+
+[
+  {
+    "origin": [
+      "https://9000-firebase-ondbeat-1759062101920.cluster-lu4mup47g5gm4rtyvhzpwbfadi.cloudworkstations.dev",
+      "http://localhost:3000",
+      "https://ondbeat-7349d.web.app",
+      "https://ondbeat-7349d.firebaseapp.com"
+    ],
+    "method": ["GET", "HEAD", "PUT", "POST", "DELETE", "OPTIONS"],
+    "header": ["*"],
+    "maxAgeSeconds": 3600
+  }
+]

@@ -1,5 +1,5 @@
-import Head from 'next/head';
 import { useState } from 'react';
+import Head from 'next/head';
 import { User, Lock, Share2, Bell } from 'lucide-react';
 import Layout from '../../components/Layout';
 
@@ -13,8 +13,8 @@ const SettingsLayout = ({ children, activeTab }) => {
 
     return (
         <Layout>
-             <Head>
-                <title>Settings | ONDBEAT</title>
+            <Head>
+                <title>Notifications | ONDBEAT</title>
             </Head>
             <div className="max-w-6xl mx-auto p-4 sm:p-8 flex flex-col md:flex-row gap-8">
                 <aside className="md:w-1/4">
@@ -33,13 +33,13 @@ const SettingsLayout = ({ children, activeTab }) => {
                 </main>
             </div>
         </Layout>
-    )
-}
+    );
+};
 
 const NotificationToggle = ({ title, description, checked, onChange }) => (
-    <div className="flex items-center justify-between py-4 border-b border-neutral-800/80">
+    <div className="flex items-center justify-between bg-neutral-800/50 p-4 rounded-lg">
         <div>
-            <h4 className="font-semibold text-white">{title}</h4>
+            <h3 className="font-semibold text-white">{title}</h3>
             <p className="text-sm text-neutral-400">{description}</p>
         </div>
         <div onClick={onChange} className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors ${checked ? 'bg-green-500' : 'bg-neutral-700'}`}>
@@ -52,9 +52,7 @@ export default function NotificationsPage() {
     const [notifications, setNotifications] = useState({
         comments: true,
         likes: true,
-        newFollower: true,
-        sales: false,
-        newsletter: false,
+        newFollower: false,
     });
 
     const handleToggle = (key) => {
@@ -70,8 +68,6 @@ export default function NotificationsPage() {
                     <NotificationToggle title="Comments" description="Notify me when someone comments on my track." checked={notifications.comments} onChange={() => handleToggle('comments')} />
                     <NotificationToggle title="Likes" description="Notify me when someone likes my track." checked={notifications.likes} onChange={() => handleToggle('likes')} />
                     <NotificationToggle title="New Follower" description="Notify me when someone starts following me." checked={notifications.newFollower} onChange={() => handleToggle('newFollower')} />
-                    <NotificationToggle title="Sales" description="Notify me when I make a new sale." checked={notifications.sales} onChange={() => handleToggle('sales')} />
-                    <NotificationToggle title="Newsletter" description="Receive our weekly newsletter." checked={notifications.newsletter} onChange={() => handleToggle('newsletter')} />
                 </div>
             </div>
         </SettingsLayout>
