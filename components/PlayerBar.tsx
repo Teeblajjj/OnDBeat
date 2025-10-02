@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, Heart, Repeat, Shuffle, Maximize2, Users, Mic2 } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 import Image from 'next/image';
@@ -28,16 +28,19 @@ const PlayerBar = () => {
             setIsMuted(true);
         }
     };
+    
+    // Safely access producer name
+    const producerName = currentTrack.producer?.displayName || 'Unknown Artist';
 
     return (
         <div className="fixed bottom-0 left-0 right-0 h-[5.5rem] bg-black/80 backdrop-blur-md border-t border-neutral-800/70 text-white z-50 flex items-center justify-between px-4">
 
             {/* Track Info */}
             <div className="flex items-center gap-4 w-1/4">
-                 <Image src={currentTrack.cover} alt={currentTrack.title} width={64} height={64} className="rounded-md" />
+                 <Image src={currentTrack.coverImage || '/default-cover.png'} alt={currentTrack.title} width={64} height={64} className="rounded-md" />
                 <div>
                     <h4 className="font-bold truncate text-lg">{currentTrack.title}</h4>
-                    <p className="text-neutral-400 text-sm truncate">{currentTrack.producer}</p>
+                    <p className="text-neutral-400 text-sm truncate">{producerName}</p>
                 </div>
                 <Heart size={20} fill={isLiked ? '#1DB954' : 'none'} stroke={isLiked ? '#1DB954' : 'currentColor'} className="cursor-pointer hover:text-white" onClick={() => setIsLiked(!isLiked)} />
             </div>
@@ -86,4 +89,4 @@ const PlayerBar = () => {
     );
 };
 
-export default PlayerBar; 
+export default PlayerBar;

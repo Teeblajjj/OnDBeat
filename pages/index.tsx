@@ -1,121 +1,49 @@
 import Head from "next/head";
-import { useState } from "react";
-import { useRouter } from "next/router";
 import Link from "next/link";
-import { Play, Pause, ShoppingCart, Heart, MessageCircle, Upload, MoreVertical, UserCircle, Compass, Star, Users, Music } from "lucide-react";
+import { Compass, Star, Users, UserCircle } from "lucide-react";
 import Layout from "../components/Layout";
-import BeatModal from "../components/BeatModal";
-import { useAuth } from "../context/AuthContext";
-import { useCart } from "../context/CartContext";
-import { usePlayer } from "../context/PlayerContext";
+import { FeedItem } from "../components/FeedItem";
+import { db } from "../lib/firebase.js";
+import { collection, getDocs, query, orderBy, limit, where, doc, getDoc } from "firebase/firestore";
 
-// --- Interfaces ---
-interface License { name: string; price: number; files: string; recommended?: boolean; features: string[]; }
-interface Beat { id: number; title: string; producer: string; producerHandle: string; price: number; cover: string; bpm: number; tags: string[]; description: string; isFree?: boolean; licenses: License[]; likes: number; comments: number; shares: number; released: string; postedAt: string; isSponsored?: boolean;}
-interface Creator { id: number; name: string; handle: string; image: string; followers: number; isVerified: boolean; isAd?: boolean; }
-
-// --- Component ---
-export default function Home() {
-  // --- State & Hooks ---
-  const [isLicenseModalOpen, setLicenseModalOpen] = useState(false);
-  const [selectedBeat, setSelectedBeat] = useState<Beat | null>(null);
-  const [selectedLicense, setSelectedLicense] = useState<number | null>(0);
-  const router = useRouter();
-  const { addToCart } = useCart();
-  const { playTrack, currentTrack, isPlaying } = usePlayer();
-  const { user } = useAuth();
-
-  // --- Dummy Data ---
-  const feedItems: Beat[] = [
-    { id: 1, title: "SPIN BOUT U | DINA AYADA, KEE NOLA, DA...", producer: "DatBoiDJ", producerHandle: "datboidj", price: 14.99, cover: "", bpm: 142, tags: ["afro", "drill", "hard"], description: "BUY 2 GET 8 FREE - \"TAKE10\" FOR 10% OFF...", licenses: [], likes: 18, comments: 1, shares: 0, released: "Jul 15, 2025", postedAt: "4m", isSponsored: true },
-    { id: 2, title: "Attitude (Central Cee x Sexy Drill)", producer: "Side Effects", producerHandle: "sideeffectsbeats", price: 47.00, cover: "", bpm: 110, tags: ["pop", "chill", "upbeat"], description: "...", licenses: [], likes: 4, comments: 1, shares: 0, released: "Aug 31, 2025", postedAt: "7m" },
-    { id: 3, title: "Lagos City Lights", producer: "Olamide", producerHandle: "olamide", price: 29.95, cover: "", bpm: 120, tags: ["r&b", "soul", "smooth"], description: "...", licenses: [], likes: 150, comments: 23, shares: 12, released: "Jan 10, 2025", postedAt: "2h" },
-  ];
-
-  const topProducers: Creator[] = [
-    { id: 1, name: "Dakota Parker", handle: "dkota", image: "", followers: 99600, isVerified: true, isAd: true },
-    { id: 2, name: "Loudestro R...", handle: "loudestro", image: "", followers: 97100, isVerified: true, isAd: true },
-    { id: 3, name: "Fantom", handle: "fantom", image: "", followers: 516300, isVerified: false, isAd: true },
-    { id: 4, name: "Encore", handle: "encore", image: "", followers: 148600, isVerified: false, isAd: true },
-    { id: 5, name: "BigBadBeats", handle: "bigbad", image: "", followers: 246000, isVerified: true, isAd: true },
-    { id: 6, name: "Mazz Music", handle: "mazzmusic", image: "", followers: 51700, isVerified: false, isAd: true },
-  ];
-
-  // --- Handlers ---
-  const openLicenseModal = (beat: Beat) => { setSelectedBeat(beat); setLicenseModalOpen(true); };
-  const closeLicenseModal = () => { setLicenseModalOpen(false); setSelectedBeat(null); };
-  const handleAddToCart = () => { /* addToCart logic */ closeLicenseModal(); };
-  const handleBuyNow = () => { /* addToCart and redirect logic */ router.push("/checkout"); };
-
+export default function Home({ tracks, topProducers }) {
   // --- Components ---
-  const FeedItem = ({ beat }: { beat: Beat }) => (
-    <div className="bg-[#181818] border border-neutral-800 rounded-lg p-4 sm:p-6 shadow-lg transform hover:scale-[1.01] transition-transform duration-300">
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center gap-3">
-          <UserCircle size={40} className="text-neutral-500" />
-          <div>
-            <p className="font-bold text-white">{beat.producer} <span className="font-normal text-neutral-400 text-sm">@{beat.producerHandle}</span></p>
-            <p className="text-sm text-neutral-500">{beat.postedAt} ago {beat.isSponsored && <span className="text-xs text-neutral-500">• Sponsored</span>}</p>
-          </div>
-        </div>
-        <button className="text-neutral-400 hover:text-white">
-          <MoreVertical size={20} />
-        </button>
-      </div>
+  const TopProducersList = ({ producers }) => {
+    const formatFollowers = (num) => {
+      if (num >= 1000) {
+        return (num / 1000).toFixed(1) + 'k';
+      }
+      return num;
+    };
 
-      <div className="flex flex-col sm:flex-row gap-6">
-        <div className="w-full sm:w-40 h-40 bg-neutral-800 rounded-md flex-shrink-0 flex items-center justify-center relative overflow-hidden">
-            <Music size={60} className="text-neutral-600" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-        </div>
-        <div className="flex-grow">
-          <div className="flex items-center gap-3">
-            <button onClick={() => playTrack(beat)} className="text-white bg-green-500/10 rounded-full p-2 hover:bg-green-500/20 transition-colors">
-              {currentTrack?.id === beat.id && isPlaying ? <Pause size={32} /> : <Play size={32} className="ml-1" />}
-            </button>
-            <h3 className="text-xl sm:text-2xl font-bold text-white flex-grow">{beat.title}</h3>
-          </div>
-          <p className="text-neutral-400 mt-2">Released on {beat.released}</p>
-          <p className="text-neutral-300 my-3 text-sm">{beat.description}</p>
-          <button className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-full flex items-center gap-2 transition-all shadow-md hover:shadow-green-500/30">
-            <ShoppingCart size={16} />
-            <span>${beat.price}</span>
-          </button>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-6 text-neutral-400 mt-4 pt-4 border-t border-neutral-800">
-        <button className="flex items-center gap-2 hover:text-green-400 transition-colors"><Heart size={20} /> <span>{beat.likes}</span></button>
-        <button className="flex items-center gap-2 hover:text-green-400 transition-colors"><MessageCircle size={20} /> <span>{beat.comments}</span></button>
-        <button className="flex items-center gap-2 hover:text-green-400 transition-colors"><Upload size={20} /> <span>{beat.shares}</span></button>
-      </div>
-    </div>
-  );
-
-  const TopProducersList = ({ producers }: { producers: Creator[] }) => (
-    <section className="bg-[#181818] border border-neutral-800 rounded-2xl p-6 shadow-lg">
-      <h3 className="text-xl font-bold text-white mb-4">Top Producers</h3>
-      <div className="space-y-4">
-        {producers.map(p => (
-          <div key={p.id} className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-                <UserCircle size={44} className="text-neutral-500" />
-                <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-semibold text-white">{p.name}</p>
-                      {p.isAd && <span className="bg-neutral-700 text-neutral-300 text-xs font-bold px-1.5 py-0.5 rounded-sm">AD</span>}
-                    </div>
-                    <p className="text-sm text-neutral-400">{(p.followers / 1000).toFixed(1)}k followers</p>
-                </div>
+    return (
+      <section className="bg-[#181818] border border-neutral-800 rounded-2xl p-6 shadow-lg">
+        <h3 className="text-xl font-bold text-white mb-4">Top Producers</h3>
+        <div className="space-y-4">
+          {producers.map(p => (
+            <div key={p.id} className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                {p.photoURL ? (
+                  <img src={p.photoURL} alt={p.displayName} className="w-11 h-11 rounded-full object-cover" />
+                ) : (
+                  <UserCircle size={44} className="text-neutral-500" />
+                )}
+                  <div>
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold text-white">{p.displayName}</p>
+                      </div>
+                      <p className="text-sm text-neutral-400">{formatFollowers(p.followers)} followers</p>
+                  </div>
+              </div>
+              <button className="bg-transparent border border-green-500 text-green-500 text-sm font-bold px-4 py-1.5 rounded-full flex items-center justify-center hover:bg-green-500 hover:text-black transition-colors">
+                Follow
+              </button>
             </div>
-            <button className="bg-transparent border border-green-500 text-green-500 text-sm font-bold px-4 py-1.5 rounded-full flex items-center justify-center hover:bg-green-500 hover:text-black transition-colors">
-              Follow
-            </button>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
+          ))}
+        </div>
+      </section>
+    );
+  };
 
   return (
     <Layout>
@@ -127,7 +55,7 @@ export default function Home() {
           {/* Main Content Feed */}
           <div className="lg:col-span-2 space-y-6">
             <h2 className="text-3xl font-bold text-white mb-6">Feed</h2>
-            {feedItems.map(beat => <FeedItem key={beat.id} beat={beat} />)}
+            {tracks.map(track => <FeedItem key={track.id} beat={track} />)}
           </div>
 
           {/* Sidebar Content */}
@@ -144,7 +72,51 @@ export default function Home() {
           </div>
         </div>
       </div>
-      <BeatModal isOpen={isLicenseModalOpen} onClose={closeLicenseModal} beat={selectedBeat} selectedLicense={selectedLicense} onLicenseSelect={setSelectedLicense} onAddToCart={handleAddToCart} onBuyNow={handleBuyNow} />
     </Layout>
   );
+}
+
+export async function getServerSideProps() {
+  // Fetch latest tracks
+  const tracksQuery = query(collection(db, "tracks"), orderBy("createdAt", "desc"), limit(10));
+  const tracksSnapshot = await getDocs(tracksQuery);
+  const tracks = await Promise.all(tracksSnapshot.docs.map(async (docSnap) => {
+    const trackData = docSnap.data();
+    let producerData = null;
+
+    if (trackData.creatorId) {
+        const userRef = doc(db, "users", trackData.creatorId);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists()) {
+            producerData = {
+                displayName: userSnap.data().displayName,
+                photoURL: userSnap.data().photoURL
+            };
+        }
+    }
+    
+    const createdAt = trackData.createdAt?.toDate ? trackData.createdAt.toDate().toISOString() : null;
+
+    return {
+      id: docSnap.id,
+      ...trackData,
+      createdAt,
+      producer: producerData,
+    };
+  }));
+
+  // Fetch top producers
+  const producersQuery = query(collection(db, "users"), where("isCreator", "==", true), orderBy("followers", "desc"), limit(5));
+  const producersSnapshot = await getDocs(producersQuery);
+  const topProducers = producersSnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+
+  return {
+    props: {
+      tracks: JSON.parse(JSON.stringify(tracks)),
+      topProducers: JSON.parse(JSON.stringify(topProducers)),
+    },
+  };
 }
