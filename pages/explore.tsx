@@ -6,6 +6,8 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import PlayerBar from '../components/PlayerBar';
 import CartModal from '../components/CartModal';
+import BeatCard from '../components/BeatCard'; // Import the reusable BeatCard
+import Layout from '../components/Layout'; // Import Layout
 
 // --- Dummy Data ---
 const mainCategories = [
@@ -23,12 +25,12 @@ const mainCategories = [
 const popularTags = ['808', 'trap', 'beats', 'hip hop', 'rnb', 'drake', 'rap', 'boom bap', 'drill', 'lil baby', 'type beat', 'future', 'pop'];
 
 const beats = [
-  { id: 1, title: "Sunset Drive", producer: "Metro Boomin", price: 35.00 },
-  { id: 2, title: "Ocean Eyes", producer: "Billie Eilish", price: 45.00 },
-  { id: 3, title: "City Lights", producer: "The Weeknd", price: 55.00 },
-  { id: 4, title: "Desert Rose", producer: "Sting", price: 25.00 },
-  { id: 5, title: "Forest Gump", producer: "Frank Ocean", price: 65.00 },
-  { id: 6, title: "Night Owl", producer: "Drake", price: 75.00 },
+  { id: "1", name: "Sunset Drive", artist: "Metro Boomin", price: 35.00, cover: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&q=80" },
+  { id: "2", name: "Ocean Eyes", artist: "Billie Eilish", price: 45.00, cover: "https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=80" },
+  { id: "3", name: "City Lights", artist: "The Weeknd", price: 55.00, cover: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80" },
+  { id: "4", name: "Desert Rose", artist: "Sting", price: 25.00, cover: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80" },
+  { id: "5", name: "Forest Gump", artist: "Frank Ocean", price: 65.00, cover: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&q=80" },
+  { id: "6", name: "Night Owl", artist: "Drake", price: 75.00, cover: "https://images.unsplash.com/photo-1444703686981-a3abbc4d4fe3?w=400&q=80" },
 ];
 
 
@@ -41,20 +43,16 @@ export default function Explore() {
     const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
 
     return (
-        <>
+        <Layout>
             <Head>
                 <title>Explore Beats - ONDBEAT</title>
             </Head>
 
             <div className="min-h-screen bg-[#0d0d0d] text-white flex">
-                <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
+                {/* Sidebar and Header are now handled by Layout component */}
                 
-                <div className="flex-grow md:ml-60">
-                    <Header 
-                        onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        onCartClick={() => setCartModalOpen(true)}
-                        cartItems={cartContents.length}
-                    />
+                <div className="flex-grow">
+                    {/* Header component removed - it's inside Layout */}
 
                     <main className="p-4 md:p-6 lg:p-8">
                         <div className="max-w-full mx-auto">
@@ -129,11 +127,10 @@ export default function Explore() {
                         </div>
                     </main>
 
-                    <PlayerBar isPlaying={false} onPlayPause={() => {}} currentTrack={null} progress={0} />
-                    <CartModal isOpen={cartModalOpen} onClose={() => setCartModalOpen(false)} cartItems={cartContents} onRemoveItem={() => {}} onUpdateQuantity={() => {}} onCheckout={() => {}} />
+                    {/* PlayerBar and CartModal are now handled by Layout component */}
                 </div>
             </div>
-        </>
+        </Layout>
     );
 }
 
@@ -157,26 +154,7 @@ const FilterDropdown = ({ text }) => (
     </button>
 );
 
-const BeatCard = ({ beat }) => (
-    <div className="bg-transparent rounded-lg overflow-hidden group transition-all duration-300">
-        <div className="relative">
-            <div className="aspect-square bg-neutral-800 rounded-lg flex items-center justify-center">
-                 <Music size={64} className="text-neutral-600" />
-            </div>
-            <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
-                <button className="w-10 h-10 bg-green-500/80 backdrop-blur-sm text-black rounded-full flex items-center justify-center transform transition-transform hover:scale-110">
-                    {/* Play icon here */}
-                    <PlayIcon size={26} className="text-neutral-100" />
-                </button>
-            </div>
-        </div>
-        <div className="mt-2">
-            <h3 className="font-semibold text-white text-sm truncate">{beat.title}</h3>
-            <p className="text-xs text-neutral-400 truncate">{beat.producer}</p>
-            <p className="text-sm font-bold text-green-400 mt-1">${beat.price.toFixed(2)}</p>
-        </div>
-    </div>
-);
+// Removed local BeatCard as we are now using the reusable one
 
 const ListViewItem = ({ beat }) => (
     <div className="flex items-center gap-4 p-2 rounded-lg hover:bg-[#181818] transition-colors">
@@ -184,8 +162,8 @@ const ListViewItem = ({ beat }) => (
             <Music size={24} className="text-neutral-600" />
         </div>
         <div className="flex-grow grid grid-cols-3 items-center gap-4">
-            <h3 className="font-semibold text-white truncate">{beat.title}</h3>
-            <p className="text-sm text-neutral-400 truncate">{beat.producer}</p>
+            <h3 className="font-semibold text-white truncate">{beat.name}</h3>
+            <p className="text-sm text-neutral-400 truncate">{beat.artist}</p>
             <p className="text-sm font-bold text-green-400 justify-self-end">${beat.price.toFixed(2)}</p>
         </div>
     </div>
