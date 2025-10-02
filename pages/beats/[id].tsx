@@ -1,11 +1,14 @@
+
 import Head from "next/head";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { useState } from "react";
 import { Play, Pause, Heart, Share2, Download, MessageSquare, ChevronLeft, ChevronRight, Home, Star } from "lucide-react";
 import PlayerBar from "../../components/PlayerBar";
-import BeatModal from "../../components/BeatModal";
+import BeatCard from "../../components/BeatCard";
 import CartModal from "../../components/CartModal";
+import LicenseSelector from "../../components/LicenseSelector";
+
 
 
 // NOTE: This is a temporary data structure.
@@ -22,6 +25,7 @@ const sampleBeat = {
   likes: 12,
   comments: 1,
   shares: 8,
+  plays: "1.4k",
   licenses: [
     { name: "Basic", price: 9.99, description: "MP3" },
     { name: "Premium", price: 29.99, description: "MP3, WAV" },
@@ -51,25 +55,17 @@ export default function BeatDetailPage() {
   const beat = sampleBeat;
 
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isBeatModalOpen, setBeatModalOpen] = useState(false);
   const [isCartModalOpen, setCartModalOpen] = useState(false);
-  const [selectedLicense, setSelectedLicense] = useState(0);
   const [cartContents, setCartContents] = useState([]);
 
-  const closeBeatModal = () => {
-      setBeatModalOpen(false);
-      setSelectedLicense(0);
-  }
-
-  const addToCart = () => {
-    const item = { beat, licenseIndex: selectedLicense, quantity: 1 };
+  const addToCart = (license) => {
+    const item = { beat, license, quantity: 1 };
     setCartContents(prev => [...prev, item]);
-    closeBeatModal();
     setCartModalOpen(true);
   };
 
-  const handleBuyNow = () => {
-      addToCart();
+  const handleBuyNow = (license) => {
+      addToCart(license);
       router.push("/checkout");
   }
   
@@ -87,90 +83,79 @@ export default function BeatDetailPage() {
       <Head>
         <title>{beat.title} - {beat.producer} | ONDBeat</title>
       </Head>
-      <div className="min-h-screen bg-gradient-to-b from-[#1a1a1a] to-[#121212] text-white p-4 md:p-8">
-        <div className="max-w-7xl mx-auto pb-24"> {/* Padding bottom for player */}
-             <div className="flex items-center gap-4 text-neutral-300 mb-8">
-                <Link href="/" legacyBehavior>
-                    <a className="flex items-center gap-2 hover:text-white">
-                        <Home size={20} />
-                    </a>
-                </Link>
-                /
-                <button onClick={() => router.back()} className="flex items-center gap-2 hover:text-white">
-                    <ChevronLeft size={20} />
-                    Back
-                </button>
-            </div>
+      <div className="min-h-screen bg-[#121212] text-white p-4 md:p-8">
+        <div className="max-w-7xl mx-auto pb-24">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column */}
             <div className="lg:col-span-1 space-y-6 lg:sticky top-8 self-start">
-              <div className="relative">
-                <img src={beat.cover} alt="Beat cover" className="w-full rounded-xl shadow-lg" />
+               <div className="relative">
+                 <div className="aspect-w-1 aspect-h-1">
+                    <img src={beat.cover} alt="Beat cover" className="w-full h-full object-cover rounded-xl shadow-lg" />
+                 </div>
                 <button onClick={() => setIsPlaying(!isPlaying)} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors">
                     {isPlaying ? <Pause size={40}/> : <Play size={40} className="ml-2"/>}
                 </button>
               </div>
-              <div className="flex justify-around bg-[#2a2a2a] p-3 rounded-lg">
-                  <div className="text-center cursor-pointer"><Heart className="mx-auto"/> <span className="text-xs">{beat.likes}</span></div>
-                  <div className="text-center cursor-pointer"><MessageSquare className="mx-auto"/> <span className="text-xs">{beat.comments}</span></div>
-                  <div className="text-center cursor-pointer"><Share2 className="mx-auto"/> <span className="text-xs">{beat.shares}</span></div>
-                  <div className="text-center cursor-pointer"><Download className="mx-auto"/> <span className="text-xs">Free</span></div>
+                <div>
+                  <h1 className="text-4xl font-extrabold">{beat.title}</h1>
+                  <p className="text-xl text-neutral-400">{beat.producer}</p>
               </div>
-              <div>
-                  <h1 className="text-3xl font-bold">{beat.title}</h1>
-                  <p className="text-lg text-neutral-400">{beat.producer}</p>
+              <div className="flex justify-around bg-[#181818] p-4 rounded-xl">
+                  <div className="text-center cursor-pointer text-neutral-300 hover:text-white"><Heart className="mx-auto mb-1"/> <span className="text-sm font-bold">{beat.likes}</span></div>
+                  <div className="text-center cursor-pointer text-neutral-300 hover:text-white"><Share2 className="mx-auto mb-1"/> <span className="text-sm font-bold">{beat.shares}</span></div>
+                  <div className="text-center cursor-pointer text-neutral-300 hover:text-white"><Download className="mx-auto mb-1"/> <span className="text-sm font-bold">Free</span></div>
               </div>
-              <div className="bg-[#1a1a1a] p-4 rounded-xl border border-neutral-800">
-                  <h3 className="font-semibold mb-2">INFORMATION</h3>
-                  <div className="text-sm text-neutral-300 space-y-1">
-                      <p>Published: {beat.published}</p>
-                      <p>BPM: {beat.bpm}</p>
-                      <p>Key: {beat.key}</p>
+                <button className="w-full flex items-center justify-center gap-2 bg-[#181818] hover:bg-[#282828] p-3 rounded-lg text-sm font-semibold text-neutral-200">
+                    <Download size={18}/>
+                    Download for free
+                </button>
+              <div className="bg-[#181818] p-5 rounded-xl">
+                  <h3 className="font-bold mb-3 text-neutral-400 text-sm tracking-wider">INFORMATION</h3>
+                  <div className="text-sm text-neutral-200 space-y-2">
+                      <div className="flex justify-between"><span className="text-neutral-400">Published</span> <span>{beat.published}</span></div>
+                      <div className="flex justify-between"><span className="text-neutral-400">BPM</span> <span>{beat.bpm}</span></div>
+                      <div className="flex justify-between"><span className="text-neutral-400">Key</span> <span>{beat.key}</span></div>
+                       <div className="flex justify-between"><span className="text-neutral-400">Plays</span> <span>{beat.plays}</span></div>
                   </div>
               </div>
-               <div className="bg-[#1a1a1a] p-4 rounded-xl border border-neutral-800">
-                    <h3 className="font-semibold mb-3">TAGS</h3>
+               <div className="bg-[#181818] p-5 rounded-xl">
+                    <h3 className="font-bold mb-3 text-neutral-400 text-sm tracking-wider">TAGS</h3>
                     <div className="flex flex-wrap gap-2">
-                        {beat.tags.map(tag => <span key={tag} className="px-3 py-1 bg-neutral-700 text-sm rounded-full cursor-pointer hover:bg-neutral-600">{tag}</span>)}
+                        {beat.tags.map(tag => <span key={tag} className="px-3 py-1 bg-neutral-700/50 text-sm rounded-full cursor-pointer hover:bg-neutral-700">{tag}</span>)}
                     </div>
                 </div>
-                 <button className="w-full text-left p-3 bg-neutral-800 hover:bg-neutral-700 rounded-lg text-sm text-neutral-400">Report Track</button>
+                 <button className="w-full text-left p-3.5 bg-[#181818] hover:bg-[#282828] rounded-lg text-sm font-semibold text-neutral-400">Report Track</button>
             </div>
 
             {/* Right Column */}
-            <div className="lg:col-span-2 space-y-8">
-              {/* Licensing */}
-              <div className="bg-[#1a1a1a] p-6 rounded-xl border border-neutral-800">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-4">
-                    <h2 className="text-2xl font-bold">Licensing</h2>
-                    <div className="flex items-center gap-2">
-                        <p className="text-lg font-bold">${beat.price}</p>
-                        <button onClick={addToCart} className="bg-neutral-700 text-white font-bold py-2 px-6 rounded-lg hover:bg-neutral-600">Add to Cart</button>
-                        <button onClick={handleBuyNow} className="bg-blue-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-blue-700">Buy now</button>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      {beat.licenses.map((license, index) => (
-                          <div key={license.name} onClick={() => setSelectedLicense(index)} className={`p-4 rounded-lg border-2 cursor-pointer ${selectedLicense === index ? 'border-blue-500 bg-neutral-800' : 'border-transparent bg-neutral-700/50 hover:bg-neutral-700'}`}>
-                              <h3 className="font-bold text-lg">{license.name}</h3>
-                              <p className="text-neutral-400 text-sm">{license.price > 0 ? `$${license.price}`: "Negotiate"}</p>
-                          </div>
-                      ))}
-                  </div>
-              </div>
+            <div className="lg:col-span-2 space-y-8 mt-16 lg:mt-0">
+              <LicenseSelector licenses={beat.licenses} onAddToCart={addToCart} onBuyNow={handleBuyNow} />
 
               {/* Usage Terms */}
-              <div className="bg-[#1a1a1a] p-6 rounded-xl border border-neutral-800">
+              <div className="bg-[#181818] p-6 rounded-xl">
                 <h2 className="text-2xl font-bold mb-4">Usage Terms</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-neutral-300">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm text-neutral-300">
                     {beat.usageTerms.map(term => (
-                        <div key={term} className="flex items-center gap-2">
-                            <Star size={16} className="text-blue-400"/>
+                        <div key={term} className="flex items-center gap-3">
+                            <Star size={18} className="text-green-400 flex-shrink-0"/>
                             <span>{term}</span>
                         </div>
                     ))}
                 </div>
               </div>
+                {/* Comments */}
+              <div className="bg-[#181818] p-6 rounded-xl">
+                <h2 className="text-2xl font-bold mb-4">Comments</h2>
+                <div className="flex gap-4">
+                    <img src="/path-to-user-avatar.png" alt="Your avatar" className="w-10 h-10 rounded-full bg-neutral-700"/>
+                    <input type="text" placeholder="Share your thoughts..." className="w-full bg-neutral-800/50 border border-neutral-700 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" />
+                </div>
+                 <div className="mt-8 text-center text-neutral-500">
+                    <p className="font-semibold">No comments yet.</p>
+                    <p className="text-sm">Be the first to share some love!</p>
+                </div>
+              </div>
+
 
               {/* More from Producer */}
               <div>
@@ -178,50 +163,26 @@ export default function BeatDetailPage() {
                     <h2 className="text-2xl font-bold">More from {beat.producer}</h2>
                     <a href="#" className="text-sm font-bold text-neutral-400 hover:underline">See all</a>
                  </div>
-                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                     {relatedTracks.slice(0, 4).map(track => (
-                         <Link href={`/beats/${track.id}`} key={track.id} legacyBehavior>
-                            <a className="bg-[#2a2a2a] p-3 rounded-lg hover:bg-neutral-700 transition-colors cursor-pointer">
-                                <img src={track.cover} alt={track.title} className="w-full rounded-md mb-2"/>
-                                <p className="font-bold text-sm truncate">{track.title}</p>
-                                <p className="text-xs text-neutral-400">${track.price}</p>
-                            </a>
-                        </Link>
+                         <BeatCard key={track.id} beat={track}/>
                     ))}
                  </div>
               </div>
               
-              {/* Comments */}
-              <div className="bg-[#1a1a1a] p-6 rounded-xl border border-neutral-800">
-                <h2 className="text-2xl font-bold mb-4">Comments</h2>
-                <div className="flex gap-4">
-                    <img src="/path-to-user-avatar.png" alt="Your avatar" className="w-10 h-10 rounded-full bg-neutral-700"/>
-                    <input type="text" placeholder="Share your thoughts..." className="w-full bg-neutral-800 border border-neutral-700 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-                </div>
-                 <div className="mt-6 text-center text-neutral-500">
-                    <p>No comments yet.</p>
-                    <p className="text-sm">Be the first to share some love!</p>
-                </div>
-              </div>
 
               {/* Related Tracks */}
                <div>
                  <div className="flex justify-between items-center mb-4">
                     <h2 className="text-2xl font-bold">Related Tracks</h2>
                      <div className="flex items-center gap-2">
-                        <button className="bg-black/50 rounded-full p-1 hover:bg-white/20"><ChevronLeft size={20} /></button>
-                        <button className="bg-black/50 rounded-full p-1 hover:bg-white/20"><ChevronRight size={20} /></button>
+                        <button className="bg-black/50 rounded-full p-1 hover:bg-white/20 transition-colors"><ChevronLeft size={22} /></button>
+                        <button className="bg-black/50 rounded-full p-1 hover:bg-white/20 transition-colors"><ChevronRight size={22} /></button>
                     </div>
                  </div>
-                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
                     {relatedTracks.map(track => (
-                        <Link href={`/beats/${track.id}`} key={track.id} legacyBehavior>
-                            <a className="bg-[#2a2a2a] p-3 rounded-lg hover:bg-neutral-700 transition-colors cursor-pointer">
-                                <img src={track.cover} alt={track.title} className="w-full rounded-md mb-2"/>
-                                <p className="font-bold text-sm truncate">{track.title}</p>
-                                <p className="text-xs text-neutral-400">${track.price > 0 ? track.price : "Free"}</p>
-                            </a>
-                        </Link>
+                        <BeatCard key={track.id} beat={track}/>
                     ))}
                  </div>
               </div>
@@ -231,7 +192,6 @@ export default function BeatDetailPage() {
       </div>
 
     <PlayerBar isPlaying={isPlaying} onPlayPause={() => setIsPlaying(!isPlaying)} currentTrack={beat} progress={30} />
-    <BeatModal isOpen={isBeatModalOpen} onClose={closeBeatModal} beat={beat} selectedLicense={selectedLicense} onLicenseSelect={setSelectedLicense} onAddToCart={addToCart} onBuyNow={handleBuyNow} />
     <CartModal isOpen={isCartModalOpen} onClose={() => setCartModalOpen(false)} cartItems={cartContents} onRemoveItem={handleRemoveItem} onUpdateQuantity={handleUpdateQuantity} onCheckout={() => router.push("/checkout")} />
     </>
   );

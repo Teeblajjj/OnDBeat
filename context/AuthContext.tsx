@@ -58,8 +58,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (userDoc.exists()) {
           const userProfile = userDoc.data() as UserProfile;
           setUser({ ...firebaseUser, ...userProfile });
-          setViewAsCreator(userProfile.isCreator);
+          // Set the initial view mode based on whether the user is a creator
+          if (userProfile.isCreator) {
+            setViewAsCreator(true);
+          }
         } else {
+          // This case is for when a user is authenticated with Firebase Auth
+          // but doesn't have a corresponding document in Firestore yet.
           setUser(firebaseUser); 
         }
       } else {
@@ -142,15 +147,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const toggleView = () => {
-    if (user?.isCreator) {
+    // Only allow toggling if the user is actually a creator
+    if (user && user.isCreator) {
       setViewAsCreator(prev => !prev);
     }
   };
 
-  const contextUser = user ? { ...user, isCreator: viewAsCreator } : null;
-
   return (
-    <AuthContext.Provider value={{ user: contextUser, isAuthModalOpen, authMode, openAuthModal, closeAuthModal, toggleView, viewAsCreator, logout, login, signUp }}>
+    <AuthContext.Provider value={{ user, isAuthModalOpen, authMode, openAuthModal, closeAuthModal, toggleView, viewAsCreator, logout, login, signUp }}>
       {children}
     </AuthContext.Provider>
   );

@@ -100,7 +100,7 @@ const Sidebar = ({ mobileMenuOpen, onToggleMobileMenu }) => {
             </div>
 
             <div className="mt-auto pb-24">
-                 {!user?.isCreator && (
+                 {user && !user?.isCreator && (
                      <div className="p-4 bg-gradient-to-br from-green-900/50 to-neutral-800/50 rounded-lg border border-green-800/50">
                          <h3 className="font-bold text-white">Become a Creator</h3>
                          <p className="text-sm text-neutral-300 mt-1 mb-3">Start selling your beats and sounds to a global audience.</p>

@@ -96,6 +96,7 @@ const Header = () => {
                                     <Link href="/user/profile" className="flex items-center gap-3 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-700/60"><User size={16}/>My Profile</Link>
                                     <Link href="/user/history" className="flex items-center gap-3 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-700/60"><History size={16}/>History</Link>
                                     <Link href="/user/edit-profile" className="flex items-center gap-3 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-700/60"><Settings size={16}/>Settings</Link>
+
                                     <Link href="/user/invite-a-friend" className="flex items-center gap-3 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-700/60"><UserPlus size={16}/>Invite a Friend</Link>
                                     <div className="border-t border-neutral-800 my-1"></div>
                                     <button onClick={logout} className="flex items-center gap-3 w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10"><LogOut size={16}/>Logout</button>

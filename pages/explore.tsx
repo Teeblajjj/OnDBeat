@@ -46,7 +46,7 @@ export default function Explore() {
                 <title>Explore Beats - ONDBEAT</title>
             </Head>
 
-            <div className="min-h-screen bg-black text-white flex">
+            <div className="min-h-screen bg-[#0d0d0d] text-white flex">
                 <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
                 
                 <div className="flex-grow md:ml-60">
