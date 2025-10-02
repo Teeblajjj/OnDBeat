@@ -57,20 +57,26 @@ export const FeedItem = ({ beat }) => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-6">
-                <div className="w-full sm:w-40 h-40 bg-neutral-800 rounded-md flex-shrink-0 flex items-center justify-center relative overflow-hidden">
-                    {beat.coverImage ? (
-                        <img src={beat.coverImage} alt={beat.title} className="w-full h-full object-cover" />
-                    ) : (
-                        <Music size={60} className="text-neutral-600" />
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                </div>
+                <Link href={`/beats/${beat.id}`} legacyBehavior>
+                    <a className="w-full sm:w-40 h-40 bg-neutral-800 rounded-md flex-shrink-0 flex items-center justify-center relative overflow-hidden cursor-pointer">
+                        {beat.coverImage ? (
+                            <img src={beat.coverImage} alt={beat.title} className="w-full h-full object-cover" />
+                        ) : (
+                            <Music size={60} className="text-neutral-600" />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                    </a>
+                </Link>
                 <div className="flex-grow">
                     <div className="flex items-center gap-3">
                         <button onClick={() => playTrack(beat)} className="text-white bg-green-500/10 rounded-full p-2 hover:bg-green-500/20 transition-colors">
                             {currentTrack?.id === beat.id && isPlaying ? <Pause size={32} /> : <Play size={32} className="ml-1" />}
                         </button>
-                        <h3 className="text-xl sm:text-2xl font-bold text-white flex-grow">{beat.title}</h3>
+                        <Link href={`/beats/${beat.id}`} legacyBehavior>
+                            <a className="hover:underline">
+                                <h3 className="text-xl sm:text-2xl font-bold text-white flex-grow">{beat.title}</h3>
+                            </a>
+                        </Link>
                     </div>
                     <p className="text-neutral-400 mt-2">Released on {releaseDate}</p>
                     <p className="text-neutral-300 my-3 text-sm">{beat.description}</p>

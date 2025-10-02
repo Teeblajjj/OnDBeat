@@ -1,198 +1,179 @@
+import { useState } from 'react';
+import Layout from '../../components/Layout';
+import { db } from '../../lib/firebase';
+import { doc, getDoc, collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
+import { Play, Heart, Share2, ShoppingCart, ArrowLeft, Music } from 'lucide-react';
+import BeatCard from '../../components/BeatCard';
+import { useRouter } from 'next/router';
+import { motion } from 'framer-motion';
 
-import Head from "next/head";
-import { useRouter } from "next/router";
-import Link from "next/link";
-import { useState } from "react";
-import { Play, Pause, Heart, Share2, Download, MessageSquare, ChevronLeft, ChevronRight, Home, Star } from "lucide-react";
-import PlayerBar from "../../components/PlayerBar";
-import BeatCard from "../../components/BeatCard";
-import CartModal from "../../components/CartModal";
-import LicenseSelector from "../../components/LicenseSelector";
+// Dummy component for license selection
+const LicenseSelector = ({ licenses, onAddToCart }) => (
+    <div className="space-y-4">
+        {licenses.map(license => (
+            <div key={license.licenseType} className="bg-neutral-800/50 p-4 rounded-lg border border-neutral-700 flex justify-between items-center">
+                <div>
+                    <h4 className="font-bold text-white capitalize">{license.licenseType} License</h4>
+                    <p className="text-sm text-neutral-400">{license.usageRights}</p>
+                </div>
+                <div className="text-right">
+                    <p className="text-lg font-bold text-green-400">${license.price.toFixed(2)}</p>
+                    <button onClick={() => onAddToCart(license)} className="text-sm text-white mt-1">Add to Cart</button>
+                </div>
+            </div>
+        ))}
+    </div>
+);
 
 
+const BeatDetailPage = ({ track, creator, moreTracks, licenses }) => {
+    const router = useRouter();
+    if (router.isFallback) {
+        return <div>Loading...</div>;
+    }
 
-// NOTE: This is a temporary data structure.
-const sampleBeat = {
-  id: 1,
-  title: "Renfe",
-  producer: "Al Safir Type Beat",
-  price: 9.99,
-  bpm: 102,
-  key: "F min",
-  tags: ["#afro", "#chill"],
-  published: "Aug 12, 2025",
-  cover: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80",
-  likes: 12,
-  comments: 1,
-  shares: 8,
-  plays: "1.4k",
-  licenses: [
-    { name: "Basic", price: 9.99, description: "MP3" },
-    { name: "Premium", price: 29.99, description: "MP3, WAV" },
-    { name: "Exclusive", price: 0, description: "Negotiate price" },
-  ],
-  usageTerms: [
-    "USE FOR MUSIC RECORDING",
-    "DISTRIBUTE UP TO 2,000 COPIES",
-    "100,000 ONLINE AUDIO STREAMS",
-    "1 MUSIC VIDEO",
-    "FOR PROFIT LIVE PERFORMANCES",
-    "RADIO BROADCASTING RIGHTS (2 STATIONS)",
-  ],
+    return (
+        <Layout>
+            <div className="p-4 md:p-8">
+                <button 
+                    onClick={() => router.back()}
+                    className="inline-flex items-center gap-2 text-neutral-400 hover:text-white transition-colors mb-6"
+                >
+                    <ArrowLeft size={20} />
+                    Back
+                </button>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Left Column: Cover Art & Details */}
+                    <div className="lg:col-span-2">
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="flex flex-col md:flex-row items-start gap-8 bg-neutral-900/50 p-6 rounded-2xl border border-neutral-800/80"
+                        >
+                            <div className="w-full md:w-56 h-56 shrink-0 rounded-lg overflow-hidden relative">
+                                {track.coverImage ? (
+                                    <img src={track.coverImage} alt={track.title} className="w-full h-full object-cover"/>
+                                ) : (
+                                    <div className="w-full h-full bg-neutral-800 flex items-center justify-center">
+                                        <Music size={60} className="text-neutral-600"/>
+                                    </div>
+                                )}
+                                <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                                    <button className="w-16 h-16 bg-green-500/80 text-black rounded-full flex items-center justify-center transform transition-transform hover:scale-110">
+                                        <Play size={32} fill="currentColor" />
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="flex-grow">
+                                <h1 className="text-3xl md:text-4xl font-bold text-white">{track.title}</h1>
+                                <p className="text-lg text-neutral-300 mt-2">by <span className="font-semibold text-green-400">{creator?.displayName || 'Unknown Artist'}</span></p>
+                                <div className="flex items-center gap-4 mt-4 text-sm text-neutral-400">
+                                    <span>{track.genre}</span>
+                                    <span>&bull;</span>
+                                    <span>{track.bpm} BPM</span>
+                                    <span>&bull;</span>
+                                    <span>{track.key}</span>
+                                </div>
+                                <div className="flex items-center gap-4 mt-6">
+                                    <button className="flex items-center gap-2 px-4 py-2 bg-neutral-800 rounded-full hover:bg-neutral-700 transition-colors"><Heart size={16}/> {track.likes}</button>
+                                    <button className="flex items-center gap-2 px-4 py-2 bg-neutral-800 rounded-full hover:bg-neutral-700 transition-colors"><Share2 size={16}/> Share</button>
+                                </div>
+                            </div>
+                        </motion.div>
+
+                        <div className="mt-8">
+                             <h2 className="text-2xl font-bold text-white mb-4">Description</h2>
+                             <p className="text-neutral-300 whitespace-pre-line">{track.description}</p>
+                        </div>
+                    </div>
+
+                    {/* Right Column: Licensing */}
+                    <aside className="lg:col-span-1">
+                        <div className="sticky top-8 bg-neutral-900/50 p-6 rounded-2xl border border-neutral-800/80">
+                            <h2 className="text-2xl font-bold text-white mb-4">Licensing</h2>
+                            <LicenseSelector licenses={licenses} onAddToCart={(l) => console.log('Add to cart:', l)} />
+                        </div>
+                    </aside>
+                </div>
+                
+                {/* More from this creator */}
+                {moreTracks.length > 0 && (
+                    <div className="mt-12">
+                        <h2 className="text-2xl font-bold text-white mb-6">More from {creator?.displayName || 'this artist'}</h2>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
+                            {moreTracks.map(t => <BeatCard key={t.id} beat={t} />)}
+                        </div>
+                    </div>
+                )}
+            </div>
+        </Layout>
+    );
 };
 
-const relatedTracks = [
-    { id: 7, title: "Negroni", producer: "Afrobeat x Jorja Smith", price: 24.95, cover: "https://images.unsplash.com/photo-1458560871784-56d23406c791?w=400&q=80" },
-    { id: 8, title: "i-guide", producer: "Al Safir Type Beat - Ori...", price: 20.00, cover: "https://images.unsplash.com/photo-1471478331149-c72f17e33c73?w=400&q=80" },
-    { id: 9, title: "Rolly", producer: "Al Safir Type Beat", price: 9.99, cover: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&q=80" },
-    { id: 10, title: "Free", producer: "d r i l l p a c k", price: 0, cover: "https://images.unsplash.com/photo-1494232410401-ad00d5433cfa?w=400&q=80" },
-    { id: 11, title: "Narcos", producer: "Narcos Type Beat", price: 15.50, cover: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80" },
-];
+export async function getServerSideProps(context) {
+    const { id } = context.params;
 
-export default function BeatDetailPage() {
-  const router = useRouter();
-  const { id } = router.query;
-  const beat = sampleBeat;
+    const trackRef = doc(db, 'tracks', id);
+    const trackSnap = await getDoc(trackRef);
 
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isCartModalOpen, setCartModalOpen] = useState(false);
-  const [cartContents, setCartContents] = useState([]);
+    if (!trackSnap.exists()) {
+        return { notFound: true };
+    }
 
-  const addToCart = (license) => {
-    const item = { beat, license, quantity: 1 };
-    setCartContents(prev => [...prev, item]);
-    setCartModalOpen(true);
-  };
+    const track = {
+        id: trackSnap.id,
+        ...trackSnap.data(),
+        createdAt: trackSnap.data().createdAt?.toDate().toISOString() || null,
+    };
 
-  const handleBuyNow = (license) => {
-      addToCart(license);
-      router.push("/checkout");
-  }
-  
-    const handleRemoveItem = (beatId) => {
-      setCartContents(prev => prev.filter(item => item.beat.id !== beatId));
-  }
+    let creator = null;
+    if (track.creatorId) {
+        const creatorRef = doc(db, 'users', track.creatorId);
+        const creatorSnap = await getDoc(creatorRef);
+        if (creatorSnap.exists()) {
+            creator = {
+                id: creatorSnap.id,
+                ...creatorSnap.data(),
+                createdAt: null,
+            };
+        }
+    }
+    
+    // Fetch licenses from the subcollection
+    const licensesQuery = query(collection(db, 'tracks', id, 'licenses'));
+    const licensesSnap = await getDocs(licensesQuery);
+    const licenses = licensesSnap.docs.map(doc => doc.data());
 
-  const handleUpdateQuantity = (beatId, quantity) => {
-      setCartContents(prev => prev.map(item => item.beat.id === beatId ? { ...item, quantity } : item));
-  }
-
-
-  return (
-    <>
-      <Head>
-        <title>{beat.title} - {beat.producer} | ONDBeat</title>
-      </Head>
-      <div className="min-h-screen bg-[#121212] text-white p-4 md:p-8">
-        <div className="max-w-7xl mx-auto pb-24">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Left Column */}
-            <div className="lg:col-span-1 space-y-6 lg:sticky top-8 self-start">
-               <div className="relative">
-                 <div className="aspect-w-1 aspect-h-1">
-                    <img src={beat.cover} alt="Beat cover" className="w-full h-full object-cover rounded-xl shadow-lg" />
-                 </div>
-                <button onClick={() => setIsPlaying(!isPlaying)} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors">
-                    {isPlaying ? <Pause size={40}/> : <Play size={40} className="ml-2"/>}
-                </button>
-              </div>
-                <div>
-                  <h1 className="text-4xl font-extrabold">{beat.title}</h1>
-                  <p className="text-xl text-neutral-400">{beat.producer}</p>
-              </div>
-              <div className="flex justify-around bg-[#181818] p-4 rounded-xl">
-                  <div className="text-center cursor-pointer text-neutral-300 hover:text-white"><Heart className="mx-auto mb-1"/> <span className="text-sm font-bold">{beat.likes}</span></div>
-                  <div className="text-center cursor-pointer text-neutral-300 hover:text-white"><Share2 className="mx-auto mb-1"/> <span className="text-sm font-bold">{beat.shares}</span></div>
-                  <div className="text-center cursor-pointer text-neutral-300 hover:text-white"><Download className="mx-auto mb-1"/> <span className="text-sm font-bold">Free</span></div>
-              </div>
-                <button className="w-full flex items-center justify-center gap-2 bg-[#181818] hover:bg-[#282828] p-3 rounded-lg text-sm font-semibold text-neutral-200">
-                    <Download size={18}/>
-                    Download for free
-                </button>
-              <div className="bg-[#181818] p-5 rounded-xl">
-                  <h3 className="font-bold mb-3 text-neutral-400 text-sm tracking-wider">INFORMATION</h3>
-                  <div className="text-sm text-neutral-200 space-y-2">
-                      <div className="flex justify-between"><span className="text-neutral-400">Published</span> <span>{beat.published}</span></div>
-                      <div className="flex justify-between"><span className="text-neutral-400">BPM</span> <span>{beat.bpm}</span></div>
-                      <div className="flex justify-between"><span className="text-neutral-400">Key</span> <span>{beat.key}</span></div>
-                       <div className="flex justify-between"><span className="text-neutral-400">Plays</span> <span>{beat.plays}</span></div>
-                  </div>
-              </div>
-               <div className="bg-[#181818] p-5 rounded-xl">
-                    <h3 className="font-bold mb-3 text-neutral-400 text-sm tracking-wider">TAGS</h3>
-                    <div className="flex flex-wrap gap-2">
-                        {beat.tags.map(tag => <span key={tag} className="px-3 py-1 bg-neutral-700/50 text-sm rounded-full cursor-pointer hover:bg-neutral-700">{tag}</span>)}
-                    </div>
-                </div>
-                 <button className="w-full text-left p-3.5 bg-[#181818] hover:bg-[#282828] rounded-lg text-sm font-semibold text-neutral-400">Report Track</button>
-            </div>
-
-            {/* Right Column */}
-            <div className="lg:col-span-2 space-y-8 mt-16 lg:mt-0">
-              <LicenseSelector licenses={beat.licenses} onAddToCart={addToCart} onBuyNow={handleBuyNow} />
-
-              {/* Usage Terms */}
-              <div className="bg-[#181818] p-6 rounded-xl">
-                <h2 className="text-2xl font-bold mb-4">Usage Terms</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4 text-sm text-neutral-300">
-                    {beat.usageTerms.map(term => (
-                        <div key={term} className="flex items-center gap-3">
-                            <Star size={18} className="text-green-400 flex-shrink-0"/>
-                            <span>{term}</span>
-                        </div>
-                    ))}
-                </div>
-              </div>
-                {/* Comments */}
-              <div className="bg-[#181818] p-6 rounded-xl">
-                <h2 className="text-2xl font-bold mb-4">Comments</h2>
-                <div className="flex gap-4">
-                    <img src="/path-to-user-avatar.png" alt="Your avatar" className="w-10 h-10 rounded-full bg-neutral-700"/>
-                    <input type="text" placeholder="Share your thoughts..." className="w-full bg-neutral-800/50 border border-neutral-700 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" />
-                </div>
-                 <div className="mt-8 text-center text-neutral-500">
-                    <p className="font-semibold">No comments yet.</p>
-                    <p className="text-sm">Be the first to share some love!</p>
-                </div>
-              </div>
+    // Fetch more tracks from the same creator, excluding the current one
+    const moreTracksQuery = query(
+        collection(db, 'tracks'), 
+        where('creatorId', '==', track.creatorId),
+        orderBy("createdAt", "desc"),
+        limit(7) // Fetch one extra to filter out the current track
+    );
+    const moreTracksSnap = await getDocs(moreTracksQuery);
+    const moreTracks = moreTracksSnap.docs
+        .map(doc => ({
+            id: doc.id,
+            name: doc.data().title,
+            artist: creator?.displayName || "Creator",
+            price: doc.data().priceWav,
+            cover: doc.data().coverImage,
+        }))
+        .filter(t => t.id !== id) // Exclude the current track
+        .slice(0, 6); // Ensure we only have 6
 
 
-              {/* More from Producer */}
-              <div>
-                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold">More from {beat.producer}</h2>
-                    <a href="#" className="text-sm font-bold text-neutral-400 hover:underline">See all</a>
-                 </div>
-                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {relatedTracks.slice(0, 4).map(track => (
-                         <BeatCard key={track.id} beat={track}/>
-                    ))}
-                 </div>
-              </div>
-              
-
-              {/* Related Tracks */}
-               <div>
-                 <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-2xl font-bold">Related Tracks</h2>
-                     <div className="flex items-center gap-2">
-                        <button className="bg-black/50 rounded-full p-1 hover:bg-white/20 transition-colors"><ChevronLeft size={22} /></button>
-                        <button className="bg-black/50 rounded-full p-1 hover:bg-white/20 transition-colors"><ChevronRight size={22} /></button>
-                    </div>
-                 </div>
-                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                    {relatedTracks.map(track => (
-                        <BeatCard key={track.id} beat={track}/>
-                    ))}
-                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    <PlayerBar isPlaying={isPlaying} onPlayPause={() => setIsPlaying(!isPlaying)} currentTrack={beat} progress={30} />
-    <CartModal isOpen={isCartModalOpen} onClose={() => setCartModalOpen(false)} cartItems={cartContents} onRemoveItem={handleRemoveItem} onUpdateQuantity={handleUpdateQuantity} onCheckout={() => router.push("/checkout")} />
-    </>
-  );
+    return {
+        props: {
+            track: JSON.parse(JSON.stringify(track)),
+            creator: JSON.parse(JSON.stringify(creator)),
+            licenses: JSON.parse(JSON.stringify(licenses)),
+            moreTracks: JSON.parse(JSON.stringify(moreTracks)),
+        },
+    };
 }
+
+
+export default BeatDetailPage;
