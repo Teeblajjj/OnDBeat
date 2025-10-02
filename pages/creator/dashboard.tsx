@@ -1,99 +1,178 @@
-import Head from 'next/head';
-import { useState } from 'react';
-import Sidebar from '../../components/Sidebar';
-import Header from '../../components/Header';
-import PlayerBar from '../../components/PlayerBar';
-import { DollarSign, ShoppingCart, BarChart, Users } from 'lucide-react';
+import Layout from '../../components/Layout';
+import { motion } from 'framer-motion';
+import { ArrowUpRight, Music, TrendingUp, FileText, DollarSign, Upload, Folder, Package, Download, Award } from 'lucide-react';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-const StatCard = ({ icon, label, value, color }) => (
-    <div className={`bg-neutral-800/60 p-6 rounded-lg flex items-center space-x-4`}>
-        <div className={`p-3 rounded-full bg-${color}-600/20 text-${color}-400`}>
-            {icon}
-        </div>
-        <div>
-            <p className="text-sm text-neutral-400 font-semibold uppercase tracking-wider">{label}</p>
-            <p className="text-2xl font-bold">{value}</p>
-        </div>
+// Mock Data
+const user = {
+    name: 'StellarBeats',
+    avatar: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=100&q=80',
+    totalEarnings: 1250.75,
+    totalPlays: 7850,
+    totalUploads: 25,
+};
+
+const keyMetrics = [
+    { title: 'Tracks Uploaded', value: 12, growth: '+5%', icon: <Music /> },
+    { title: 'Total Sales', value: '$850.50', growth: '+12%', icon: <TrendingUp /> },
+    { title: 'Active Contracts', value: 3, growth: '+1', icon: <FileText /> },
+    { title: 'Payout Balance', value: '$350.75', action: 'Withdraw', icon: <DollarSign /> },
+];
+
+const revenueData = [
+    { name: 'Jan', revenue: 120 }, { name: 'Feb', revenue: 200 }, { name: 'Mar', revenue: 150 },
+    { name: 'Apr', revenue: 300 }, { name: 'May', revenue: 250 }, { name: 'Jun', revenue: 400 },
+];
+
+const trackPerformanceData = [
+    { name: 'Cosmic Drift', sales: 90 }, { name: 'Neon Dreams', sales: 75 },
+    { name: 'Future Funk', sales: 60 }, { name: 'Cybernetic Soul', sales: 45 },
+    { name: 'Starlight', sales: 30 },
+];
+
+const geoData = [{ name: 'USA', value: 400 }, { name: 'UK', value: 150 }, { name: 'Canada', value: 100 }, { name: 'Germany', value: 80 }];
+const COLORS = ['#22c55e', '#16a34a', '#15803d', '#166534'];
+
+const activityFeed = [
+    { type: 'sale', text: 'Sold Exclusive License for "Cosmic Drift"', time: '2 hours ago' },
+    { type: 'upload', text: 'Uploaded new beat: "Starlight"', time: '1 day ago' },
+    { type: 'payout', text: 'Payout request of $150 processed', time: '3 days ago' },
+];
+
+const achievements = [
+    { name: 'First Sale', unlocked: true }, { name: '10K Plays', unlocked: false }, { name: '5 Contracts Signed', unlocked: true },
+];
+
+const quickActions = [
+    { label: 'Upload New Track', icon: <Upload /> }, { label: 'Create Collection', icon: <Folder /> },
+    { label: 'Add Sound Kit', icon: <Package /> }, { label: 'Withdraw Funds', icon: <Download /> },
+    { label: 'Create Contract', icon: <FileText /> },
+];
+
+const DashboardPage = () => {
+    return (
+        <Layout>
+            <div className="p-4 md:p-8 space-y-8">
+                {/* Welcome & Overview */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                    <div className="flex items-center gap-4">
+                        <img src={user.avatar} alt="Creator Avatar" className="w-16 h-16 rounded-full border-2 border-green-500" />
+                        <div>
+                            <h1 className="text-2xl font-bold text-white">Welcome, {user.name}</h1>
+                            <p className="text-neutral-400">Keep building your legacy.</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-4 mt-4 sm:mt-0">
+                        <div className="text-right">
+                            <p className="text-sm text-neutral-400">Total Earnings</p>
+                            <p className="font-bold text-white">${user.totalEarnings.toFixed(2)}</p>
+                        </div>
+                        <div className="text-right">
+                            <p className="text-sm text-neutral-400">Total Plays</p>
+                            <p className="font-bold text-white">{user.totalPlays}</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Key Metrics */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {keyMetrics.map((metric, i) => (
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
+                            className="bg-neutral-900/60 p-6 rounded-2xl border border-neutral-800/80 hover:border-green-500/50 transition-colors">
+                            <div className="flex justify-between items-start">
+                                <div className="text-green-400">{metric.icon}</div>
+                                <span className={`text-xs font-bold ${metric.growth?.startsWith('+') ? 'text-green-400' : 'text-red-400'}`}>{metric.growth}</span>
+                            </div>
+                            <p className="text-sm text-neutral-400 mt-2">{metric.title}</p>
+                            <p className="text-2xl font-bold text-white">{metric.value}</p>
+                        </motion.div>
+                    ))}
+                </div>
+
+                {/* Analytics & Charts */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <ChartCard title="Monthly Revenue">
+                        <ResponsiveContainer width="100%" height={300}>
+                            <LineChart data={revenueData}>
+                                <XAxis dataKey="name" stroke="#a3a3a3" fontSize={12} />
+                                <YAxis stroke="#a3a3a3" fontSize={12} />
+                                <Tooltip contentStyle={{ backgroundColor: '#181818', border: '1px solid #404040' }} />
+                                <Line type="monotone" dataKey="revenue" stroke="#22c55e" strokeWidth={2} />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </ChartCard>
+                    <ChartCard title="Top 5 Tracks (Sales)">
+                         <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={trackPerformanceData} layout="vertical">
+                                <XAxis type="number" hide />
+                                <YAxis type="category" dataKey="name" stroke="#a3a3a3" fontSize={12} width={80} />
+                                <Tooltip cursor={{ fill: '#ffffff10' }} contentStyle={{ backgroundColor: '#181818', border: '1px solid #404040' }} />
+                                <Bar dataKey="sales" fill="#22c55e" radius={[0, 5, 5, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </ChartCard>
+                </div>
+
+                 {/* Activity, Gamification, Quick Actions */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="lg:col-span-2">
+                        <ChartCard title="Activity Feed">
+                            <div className="space-y-4">
+                                {activityFeed.map((item, i) => (
+                                    <div key={i} className="flex items-center gap-4">
+                                        <div className="text-green-400">
+                                            {item.type === 'sale' ? <DollarSign size={20}/> : item.type === 'upload' ? <Music size={20}/> : <Download size={20}/>}
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-white">{item.text}</p>
+                                            <p className="text-xs text-neutral-500">{item.time}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </ChartCard>
+                    </div>
+                    <div>
+                        <ChartCard title="Achievements">
+                            <div className="space-y-4">
+                                <p className="text-sm text-neutral-400">You've uploaded 12/20 tracks this month.</p>
+                                <div className="w-full bg-neutral-800 rounded-full h-2.5">
+                                    <div className="bg-green-500 h-2.5 rounded-full" style={{width: '60%'}}></div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    {achievements.map((ach, i) => (
+                                        <div key={i} className={`p-3 rounded-full ${ach.unlocked ? 'bg-green-500/20 text-green-400' : 'bg-neutral-800 text-neutral-600'}`}>
+                                            <Award size={24}/>
+                                        </div>
+                                    ))}
+                                </div>
+                                <button className="text-sm text-green-400 hover:underline">View All Achievements</button>
+                            </div>
+                        </ChartCard>
+                    </div>
+                </div>
+
+                <div>
+                     <h2 className="text-xl font-bold text-white mb-4">Quick Actions</h2>
+                     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+                        {quickActions.map((action, i) => (
+                            <button key={i} className="flex flex-col items-center justify-center p-4 bg-neutral-900/60 rounded-lg border border-neutral-800/80 hover:bg-neutral-800/60 hover:border-green-500/50 transition-colors">
+                                <div className="text-green-400 mb-2">{action.icon}</div>
+                                <span className="text-sm text-white font-semibold text-center">{action.label}</span>
+                            </button>
+                        ))}
+                     </div>
+                </div>
+            </div>
+        </Layout>
+    );
+};
+
+const ChartCard = ({ title, children }) => (
+    <div className="bg-neutral-900/60 p-6 rounded-2xl border border-neutral-800/80">
+        <h3 className="text-lg font-bold text-white mb-4">{title}</h3>
+        <div>{children}</div>
     </div>
 );
 
-export default function CreatorDashboardPage() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const stats = {
-      totalRevenue: "$4,820.50",
-      totalSales: 210,
-      followers: "3.1K",
-      monthlyListeners: "75K",
-  };
-  
-  const recentSales = [
-      { id: 1, beatName: 'Sunset Vibez', customer: 'Michael Scott', license: 'Standard', price: "$25.00" },
-      { id: 2, beatName: 'Drill Sergeant', customer: 'Dwight Schrute', license: 'Exclusive', price: "$250.00" },
-  ];
-
-  return (
-    <>
-      <Head>
-        <title>Creator Dashboard - ONDBeat Marketplace</title>
-      </Head>
-
-      <div className="min-h-screen bg-black text-white flex">
-        <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
-        
-        <div className="flex-1 md:ml-56">
-          <Header 
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
-            onCartClick={() => {}}
-            cartItems={0}
-          />
-
-          <main className="bg-gradient-to-b from-purple-900/30 to-[#121212] p-8">
-            <h1 className="text-4xl font-bold mb-8">Creator Dashboard</h1>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                <StatCard icon={<DollarSign size={24}/>} label="Total Revenue" value={stats.totalRevenue} color="green" />
-                <StatCard icon={<ShoppingCart size={24}/>} label="Total Sales" value={stats.totalSales} color="blue" />
-                <StatCard icon={<Users size={24}/>} label="Followers" value={stats.followers} color="pink" />
-                <StatCard icon={<BarChart size={24}/>} label="Monthly Listeners" value={stats.monthlyListeners} color="yellow" />
-            </div>
-
-            <h2 className="text-2xl font-bold mb-4">Recent Sales</h2>
-            <div className="bg-neutral-900/70 rounded-lg">
-                <table className="w-full text-left">
-                    <thead className="border-b border-neutral-700">
-                        <tr>
-                            <th className="p-4 font-semibold">Beat</th>
-                            <th className="p-4 font-semibold">Customer</th>
-                            <th className="p-4 font-semibold">License</th>
-                            <th className="p-4 font-semibold">Price</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {recentSales.map(sale => (
-                            <tr key={sale.id} className="border-b border-neutral-800 hover:bg-neutral-800/60">
-                                <td className="p-4 font-semibold">{sale.beatName}</td>
-                                <td className="p-4 text-neutral-400">{sale.customer}</td>
-                                <td className="p-4">
-                                    <span className={`px-2 py-1 text-xs font-bold rounded-full ${sale.license === 'Exclusive' ? 'bg-purple-600/20 text-purple-300' : 'bg-blue-600/20 text-blue-300'}`}>
-                                       {sale.license}
-                                   </span>
-                                </td>
-                                <td className="p-4 font-bold">{sale.price}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-          </main>
-
-          <PlayerBar isPlaying={false} onPlayPause={() => {}} currentTrack={null} progress={0} />
-        </div>
-      </div>
-    </>
-  )
-}
+export default DashboardPage;
