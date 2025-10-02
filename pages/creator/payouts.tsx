@@ -1,86 +1,93 @@
-import Head from 'next/head';
+import Layout from '../../components/Layout';
 import { useState } from 'react';
-import Sidebar from '../../components/Sidebar';
-import Header from '../../components/Header';
-import PlayerBar from '../../components/PlayerBar';
-import { DollarSign } from 'lucide-react';
+import { DollarSign, Plus, Download } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+// Mock Data for payouts
+const mockPayouts = [
+    { id: '1', date: '2023-10-15', method: 'PayPal', amount: 250.00, status: 'Completed' },
+    { id: '2', date: '2023-09-15', method: 'Stripe', amount: 150.00, status: 'Completed' },
+];
 
 const PayoutsPage = () => {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
+    const [payouts, setPayouts] = useState(mockPayouts);
+    const currentBalance = 350.75; // Mock data
 
-  const balance = "$2,500.00";
-  const payoutHistory = [
-    { id: 1, amount: "$500.00", date: '2023-10-15', status: 'Paid' },
-    { id: 2, amount: "$350.00", date: '2023-09-15', status: 'Paid' },
-    { id: 3, amount: "$420.00", date: '2023-08-15', status: 'Paid' },
-  ];
-
-  return (
-    <>
-      <Head>
-        <title>Payouts - ONDBeat Marketplace</title>
-      </Head>
-
-      <div className="min-h-screen bg-black text-white flex">
-        <Sidebar mobileMenuOpen={mobileMenuOpen} onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)} />
-        
-        <div className="flex-1 md:ml-56">
-          <Header 
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
-            onCartClick={() => {}}
-            cartItems={0}
-          />
-
-          <main className="bg-gradient-to-b from-purple-900/30 to-[#121212] p-8">
-            <h1 className="text-4xl font-bold mb-8">Payouts</h1>
-
-            <div className="bg-neutral-800/60 p-6 rounded-lg mb-8 flex justify-between items-center">
-                <div>
-                    <p className="text-sm text-neutral-400">Available for Payout</p>
-                    <p className="text-3xl font-bold">{balance}</p>
+    return (
+        <Layout>
+            <div className="p-4 md:p-8">
+                <div className="mb-8">
+                    <h1 className="text-3xl font-bold text-white">Payouts</h1>
+                    <p className="text-neutral-400 mt-1">Withdraw your earnings and view your payout history.</p>
                 </div>
-                <button className="bg-green-600 text-white font-bold py-3 px-6 rounded-full flex items-center space-x-2 hover:bg-green-700 transition-colors">
-                    <DollarSign size={20}/>
-                    <span>Request Payout</span>
-                </button>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
+                    <div className="md:col-span-1">
+                        <motion.div 
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="bg-gradient-to-br from-green-900/50 to-neutral-900 p-6 rounded-2xl border border-green-800/50"
+                        >
+                            <p className="text-sm font-semibold text-green-300">Current Balance</p>
+                            <p className="text-4xl font-bold text-white mt-2">${currentBalance.toFixed(2)}</p>
+                            <button className="w-full mt-6 flex items-center justify-center gap-2 bg-green-500 text-black font-bold py-3 px-4 rounded-lg hover:bg-green-600 transition-colors">
+                                <Download size={18} /> Withdraw Funds
+                            </button>
+                        </motion.div>
+                         <button className="w-full mt-4 text-sm text-center text-green-400 hover:underline">Manage Payment Methods</button>
+                    </div>
+
+                    <div className="md:col-span-2">
+                        {payouts.length > 0 ? (
+                            <div className="bg-neutral-900/50 rounded-2xl border border-neutral-800/80">
+                                <div className="p-4 border-b border-neutral-800">
+                                    <h2 className="text-lg font-bold text-white">Payout History</h2>
+                                </div>
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left">
+                                        <thead>
+                                            <tr>
+                                                <th className="p-4 text-sm font-semibold text-neutral-300">Date</th>
+                                                <th className="p-4 text-sm font-semibold text-neutral-300">Method</th>
+                                                <th className="p-4 text-sm font-semibold text-neutral-300">Amount</th>
+                                                <th className="p-4 text-sm font-semibold text-neutral-300">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {payouts.map((payout, index) => (
+                                                <motion.tr 
+                                                    key={payout.id}
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    transition={{ delay: index * 0.05 }}
+                                                    className="border-b border-neutral-800 last:border-b-0"
+                                                >
+                                                    <td className="p-4 text-neutral-300">{payout.date}</td>
+                                                    <td className="p-4 text-white font-medium">{payout.method}</td>
+                                                    <td className="p-4 text-white font-semibold">${payout.amount.toFixed(2)}</td>
+                                                    <td className="p-4"><span className="bg-green-500/10 text-green-400 text-xs font-semibold px-2 py-1 rounded-full">{payout.status}</span></td>
+                                                </motion.tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        ) : (
+                             <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                className="text-center h-full flex flex-col justify-center items-center py-20 bg-neutral-900/50 rounded-2xl border-2 border-dashed border-neutral-800"
+                            >
+                                <DollarSign size={48} className="mx-auto text-neutral-600 mb-4" />
+                                <h2 className="text-xl font-bold text-white mb-2">No payouts yet</h2>
+                                <p className="text-neutral-400">Your payout history will appear here.</p>
+                            </motion.div>
+                        )}
+                    </div>
+                </div>
             </div>
-
-            <h2 className="text-2xl font-bold mb-4">Payout History</h2>
-            <div className="bg-neutral-900/70 rounded-lg">
-                <table className="w-full text-left">
-                    <thead className="border-b border-neutral-700">
-                        <tr>
-                            <th className="p-4 font-semibold">Date</th>
-                            <th className="p-4 font-semibold">Amount</th>
-                            <th className="p-4 font-semibold">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {payoutHistory.map(payout => (
-                            <tr key={payout.id} className="border-b border-neutral-800 hover:bg-neutral-800/60">
-                                <td className="p-4 text-neutral-400">{payout.date}</td>
-                                <td className="p-4 font-bold">{payout.amount}</td>
-                                <td className="p-4">
-                                   <span className="px-2 py-1 text-xs font-bold rounded-full bg-green-600/20 text-green-300">
-                                       {payout.status}
-                                   </span>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-          </main>
-
-          <PlayerBar isPlaying={false} onPlayPause={() => {}} currentTrack={null} progress={0} />
-        </div>
-      </div>
-    </>
-  );
+        </Layout>
+    );
 };
 
 export default PayoutsPage;
