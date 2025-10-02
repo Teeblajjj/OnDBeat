@@ -5,7 +5,7 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContai
 
 // Mock Data
 const user = {
-    name: 'StellarBeats',
+    name: 'BajBeatz',
     avatar: 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=100&q=80',
     totalEarnings: 1250.75,
     totalPlays: 7850,
