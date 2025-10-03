@@ -1,29 +1,54 @@
+
 import { Play, Pause, ShoppingCart, Heart, MessageCircle, Upload, MoreVertical, UserCircle, Music } from "lucide-react";
 import { usePlayer } from "../context/PlayerContext";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { db } from "../firebase/config";
+import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
+import { CommentSection } from "./CommentSection";
+import { AnimatedHeart } from "./AnimatedHeart";
+import { AnimatePresence } from "framer-motion";
 
-export const FeedItem = ({ beat }) => {
+export const FeedItem = ({ item, collectionName }) => {
     const { playTrack, currentTrack, isPlaying } = usePlayer();
-    
-    // State for client-side only rendering to prevent hydration mismatch
-    const [timeAgo, setTimeAgo] = useState('');
-    const [releaseDate, setReleaseDate] = useState('...'); // Start with a placeholder
+    const { user } = useAuth();
 
-    const producerName = beat.producer?.displayName || "Unknown Artist";
-    const producerHandle = beat.producer?.displayName?.toLowerCase().replace(/\s/g, '') || "unknown";
-    const producerAvatar = beat.producer?.photoURL;
+    const [timeAgo, setTimeAgo] = useState('');
+    const [releaseDate, setReleaseDate] = useState('...');
+    const [isLiked, setIsLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(0);
+    const [showCommentSection, setShowCommentSection] = useState(false);
+    const [animatedHearts, setAnimatedHearts] = useState([]);
+
+    const producerName = item.producer?.displayName || "Unknown Artist";
+    const producerHandle = item.producer?.displayName?.toLowerCase().replace(/\s/g, '') || "unknown";
+    const producerAvatar = item.producer?.photoURL;
 
     useEffect(() => {
-        // This entire block runs only on the client-side, after the initial render.
-        const createdAtDate = beat.createdAt ? new Date(beat.createdAt) : null;
+        const likes = item.likes;
+        const isLegacyLikes = typeof likes === 'number';
+
+        if (isLegacyLikes) {
+            setLikeCount(likes);
+            setIsLiked(false);
+        } else if (Array.isArray(likes)) {
+            setLikeCount(likes.length);
+            setIsLiked(user ? likes.includes(user.uid) : false);
+        } else {
+            setLikeCount(0);
+            setIsLiked(false);
+        }
+    }, [item.likes, user]);
+
+    useEffect(() => {
+        const createdAtDate = item.createdAt ? new Date(item.createdAt) : null;
         if (!createdAtDate) {
             setTimeAgo('some time');
             setReleaseDate('Unknown');
             return;
         }
 
-        // --- Calculate Time Ago ---
         const timeSince = (date) => {
             const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
             if (seconds < 5) return "just now";
@@ -41,14 +66,52 @@ export const FeedItem = ({ beat }) => {
         };
         setTimeAgo(timeSince(createdAtDate));
 
-        // --- Calculate Release Date ---
         setReleaseDate(createdAtDate.toLocaleDateString('en-US', { 
             month: 'long', 
             day: 'numeric', 
             year: 'numeric' 
         }));
+    }, [item.createdAt]);
 
-    }, [beat.createdAt]);
+    const handleAnimationComplete = (id) => {
+        setAnimatedHearts((prev) => prev.filter((heart) => heart.id !== id));
+    };
+
+    const handleLike = async () => {
+        if (!user) {
+            console.log("You must be logged in to like an item.");
+            return;
+        }
+
+        const itemRef = doc(db, collectionName, item.id);
+        const isLegacyLikes = typeof item.likes === 'number';
+
+        const newIsLiked = !isLiked;
+        setIsLiked(newIsLiked);
+
+        if (newIsLiked) {
+            const newHearts = Array.from({ length: 5 }, (_, i) => ({ id: Date.now() + i }));
+            setAnimatedHearts((prev) => [...prev, ...newHearts]);
+        }
+
+        try {
+            if (newIsLiked) {
+                if (isLegacyLikes) {
+                    setLikeCount(1);
+                    await updateDoc(itemRef, { likes: [user.uid] });
+                } else {
+                    setLikeCount(prev => prev + 1);
+                    await updateDoc(itemRef, { likes: arrayUnion(user.uid) });
+                }
+            } else {
+                setLikeCount(prev => prev - 1);
+                await updateDoc(itemRef, { likes: arrayRemove(user.uid) });
+            }
+        } catch (error) {
+            console.error("Error updating like status:", error);
+            setIsLiked(!newIsLiked);
+        }
+    };
 
     return (
         <div className="bg-[#181818] border border-neutral-800 rounded-lg p-4 sm:p-6 shadow-lg transform hover:scale-[1.01] transition-transform duration-300">
@@ -61,7 +124,7 @@ export const FeedItem = ({ beat }) => {
                     )}
                     <div>
                         <p className="font-bold text-white">{producerName} <span className="font-normal text-neutral-400 text-sm">@{producerHandle}</span></p>
-                        <p className="text-sm text-neutral-500">{timeAgo} ago {beat.isSponsored && <span className="text-xs text-neutral-500">• Sponsored</span>}</p>
+                        <p className="text-sm text-neutral-500">{timeAgo} ago {item.isSponsored && <span className="text-xs text-neutral-500">• Sponsored</span>}</p>
                     </div>
                 </div>
                 <button className="text-neutral-400 hover:text-white">
@@ -70,10 +133,10 @@ export const FeedItem = ({ beat }) => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-6">
-                 <Link href={`/beats/${beat.id}`} legacyBehavior>
+                 <Link href={`/${collectionName}/${item.id}`} legacyBehavior>
                     <a className="w-full sm:w-40 h-40 bg-neutral-800 rounded-md flex-shrink-0 flex items-center justify-center relative overflow-hidden cursor-pointer">
-                        {beat.coverImage ? (
-                            <img src={beat.coverImage} alt={beat.title} className="w-full h-full object-cover" />
+                        {item.coverImage ? (
+                            <img src={item.coverImage} alt={item.title} className="w-full h-full object-cover" />
                         ) : (
                             <Music size={60} className="text-neutral-600" />
                         )}
@@ -82,29 +145,43 @@ export const FeedItem = ({ beat }) => {
                 </Link>
                 <div className="flex-grow">
                     <div className="flex items-center gap-3">
-                        <button onClick={() => playTrack(beat)} className="text-white bg-green-500/10 rounded-full p-2 hover:bg-green-500/20 transition-colors">
-                            {currentTrack?.id === beat.id && isPlaying ? <Pause size={32} /> : <Play size={32} className="ml-1" />}
+                        <button onClick={() => playTrack(item)} className="text-white bg-green-500/10 rounded-full p-2 hover:bg-green-500/20 transition-colors">
+                            {currentTrack?.id === item.id && isPlaying ? <Pause size={32} /> : <Play size={32} className="ml-1" />}
                         </button>
-                         <Link href={`/beats/${beat.id}`} legacyBehavior>
+                         <Link href={`/${collectionName}/${item.id}`} legacyBehavior>
                             <a className="hover:underline">
-                                <h3 className="text-xl sm:text-2xl font-bold text-white flex-grow">{beat.title}</h3>
+                                <h3 className="text-xl sm:text-2xl font-bold text-white flex-grow">{item.title}</h3>
                             </a>
                         </Link>
                     </div>
                     <p className="text-neutral-400 mt-2">Released on {releaseDate}</p>
-                    <p className="text-neutral-300 my-3 text-sm">{beat.description}</p>
+                    <p className="text-neutral-300 my-3 text-sm">{item.description}</p>
                     <button className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-full flex items-center gap-2 transition-all shadow-md hover:shadow-green-500/30">
                         <ShoppingCart size={16} />
-                        <span>${beat.priceWav || 'N/A'}</span>
+                        <span>${item.priceWav || 'N/A'}</span>
                     </button>
                 </div>
             </div>
 
             <div className="flex items-center gap-6 text-neutral-400 mt-4 pt-4 border-t border-neutral-800">
-                <button className="flex items-center gap-2 hover:text-green-400 transition-colors"><Heart size={20} /> <span>{beat.likes || 0}</span></button>
-                <button className="flex items-center gap-2 hover:text-green-400 transition-colors"><MessageCircle size={20} /> <span>{beat.comments || 0}</span></button>
-                <button className="flex items-center gap-2 hover:text-green-400 transition-colors"><Upload size={20} /> <span>{beat.shares || 0}</span></button>
+                <div className="relative">
+                    <button onClick={handleLike} className={`flex items-center gap-2 transition-colors ${isLiked ? 'text-green-400' : 'hover:text-green-400'}`}>
+                       <Heart size={20} fill={isLiked ? "currentColor" : "none"} /> 
+                       <span>{likeCount}</span>
+                    </button>
+                    <AnimatePresence>
+                        {animatedHearts.map((heart) => (
+                            <AnimatedHeart key={heart.id} id={heart.id} onAnimationComplete={handleAnimationComplete} />
+                        ))}
+                    </AnimatePresence>
+                </div>
+                <button onClick={() => setShowCommentSection(!showCommentSection)} className="flex items-center gap-2 hover:text-green-400 transition-colors">
+                    <MessageCircle size={20} /> <span>{item.comments?.length || 0}</span>
+                </button>
+                <button className="flex items-center gap-2 hover:text-green-400 transition-colors"><Upload size={20} /> <span>{item.shares || 0}</span></button>
             </div>
+
+            {showCommentSection && <CommentSection beatId={item.id} comments={item.comments} collectionName={collectionName} />}
         </div>
     );
 };

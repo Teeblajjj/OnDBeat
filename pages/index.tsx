@@ -55,7 +55,7 @@ export default function Home({ tracks, topProducers }) {
           {/* Main Content Feed */}
           <div className="lg:col-span-2 space-y-6">
             <h2 className="text-3xl font-bold text-white mb-6">Feed</h2>
-            {tracks.map(track => <FeedItem key={track.id} beat={track} />)}
+            {tracks.map(track => <FeedItem key={track.id} item={track} collectionName="tracks" />)}
           </div>
 
           {/* Sidebar Content */}
@@ -94,6 +94,18 @@ export async function getServerSideProps() {
             };
         }
     }
+
+    // Fetch comments for the track
+    const commentsQuery = query(collection(docSnap.ref, "comments"), orderBy("createdAt", "desc"));
+    const commentsSnapshot = await getDocs(commentsQuery);
+    const comments = commentsSnapshot.docs.map(commentDoc => {
+        const commentData = commentDoc.data();
+        return {
+            id: commentDoc.id,
+            ...commentData,
+            createdAt: commentData.createdAt?.toDate ? commentData.createdAt.toDate().toISOString() : null,
+        };
+    });
     
     const createdAt = trackData.createdAt?.toDate ? trackData.createdAt.toDate().toISOString() : null;
 
@@ -102,6 +114,7 @@ export async function getServerSideProps() {
       ...trackData,
       createdAt,
       producer: producerData,
+      comments: comments, // Add comments to the track data
     };
   }));
 
