@@ -9,13 +9,13 @@ import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { CommentSection } from "./CommentSection";
 import { AnimatedHeart } from "./AnimatedHeart";
 import { AnimatePresence } from "framer-motion";
-import { useModal } from "../context/ModalContext"; // Import the useModal hook
+import { useModal } from "../context/ModalContext";
 import { TbShoppingCartPlus } from "react-icons/tb";
 
 export const FeedItem = ({ item, collectionName }) => {
     const { playTrack, currentTrack, isPlaying } = usePlayer();
     const { user } = useAuth();
-    const { openModal } = useModal(); // Use the modal context
+    const { openModal } = useModal();
 
     const [timeAgo, setTimeAgo] = useState('');
     const [releaseDate, setReleaseDate] = useState('...');
@@ -23,10 +23,15 @@ export const FeedItem = ({ item, collectionName }) => {
     const [likeCount, setLikeCount] = useState(0);
     const [showCommentSection, setShowCommentSection] = useState(false);
     const [animatedHearts, setAnimatedHearts] = useState([]);
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const producerName = item.producer?.displayName || "Unknown Artist";
     const producerHandle = item.producer?.displayName?.toLowerCase().replace(/\s/g, '') || "unknown";
     const producerAvatar = item.producer?.photoURL;
+    
+    const description = item.description || '';
+    const isLongDescription = description.length > 180;
+    const truncatedDescription = isLongDescription ? `${description.substring(0, 180)}...` : description;
 
     useEffect(() => {
         const likes = item.likes;
@@ -82,16 +87,16 @@ export const FeedItem = ({ item, collectionName }) => {
 
     const handleLike = async () => {
         if (!user) {
-            console.log("You must be logged in to like an item.");
+            openModal('auth', {});
             return;
         }
 
         const itemRef = doc(db, collectionName, item.id);
-        const isLegacyLikes = typeof item.likes === 'number';
-
         const newIsLiked = !isLiked;
-        setIsLiked(newIsLiked);
 
+        setIsLiked(newIsLiked);
+        setLikeCount(prev => newIsLiked ? prev + 1 : prev - 1);
+        
         if (newIsLiked) {
             const newHearts = Array.from({ length: 5 }, (_, i) => ({ id: Date.now() + i }));
             setAnimatedHearts((prev) => [...prev, ...newHearts]);
@@ -99,20 +104,14 @@ export const FeedItem = ({ item, collectionName }) => {
 
         try {
             if (newIsLiked) {
-                if (isLegacyLikes) {
-                    setLikeCount(1);
-                    await updateDoc(itemRef, { likes: [user.uid] });
-                } else {
-                    setLikeCount(prev => prev + 1);
-                    await updateDoc(itemRef, { likes: arrayUnion(user.uid) });
-                }
+                await updateDoc(itemRef, { likes: arrayUnion(user.uid) });
             } else {
-                setLikeCount(prev => prev - 1);
                 await updateDoc(itemRef, { likes: arrayRemove(user.uid) });
             }
         } catch (error) {
             console.error("Error updating like status:", error);
             setIsLiked(!newIsLiked);
+            setLikeCount(prev => newIsLiked ? prev - 1 : prev + 1);
         }
     };
 
@@ -158,7 +157,14 @@ export const FeedItem = ({ item, collectionName }) => {
                         </Link>
                     </div>
                     <p className="text-neutral-400 mt-2">Released on {releaseDate}</p>
-                    <p className="text-neutral-300 my-3 text-sm">{item.description}</p>
+                    <p className="text-neutral-300 my-3 text-sm">
+                        {isExpanded ? description : truncatedDescription}
+                        {isLongDescription && (
+                            <button onClick={() => setIsExpanded(!isExpanded)} className="text-green-500 font-bold ml-2 hover:underline">
+                                {isExpanded ? 'Show less' : 'Show more'}
+                            </button>
+                        )}
+                    </p>
                     <button onClick={() => openModal('beat', { beat: item })} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-full flex items-center gap-2 transition-all shadow-md hover:shadow-green-500/30">
                         <TbShoppingCartPlus size={16} />
                         <span>${item.priceWav || 'N/A'}</span>

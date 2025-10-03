@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Trash2, PlusCircle, X, Check, Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { License } from '../../lib/types';
+import EditableLicenseName from './EditableLicenseName';
 
 const licenseTemplates: { [key: string]: Omit<License, 'name'> } = {
   'MP3': { price: 29.99, files: { mp3: true, wav: false, stems: false }, usageTerms: { distributionCopies: 2500, audioStreams: 50000, musicVideos: 1, livePerformances: true, radioStations: 1 } },
@@ -22,7 +23,7 @@ const LicenseEditor = ({ onLicensesChange }) => {
     if (licenses.some(l => l.name.startsWith(type))) return;
 
     const newLicense: License = {
-      name: `${type} License`,
+      name: type === 'Exclusive' ? 'Exclusive Rights' : `${type} License`,
       ...licenseTemplates[type],
       featured: licenses.length === 0,
     };
@@ -88,7 +89,11 @@ const LicenseEditor = ({ onLicensesChange }) => {
           >
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <input type="text" value={license.name} onChange={(e) => updateLicenseField(index, 'name', e.target.value)} className="text-xl font-bold bg-transparent text-white outline-none focus:ring-1 focus:ring-green-500 rounded-md px-2 py-1 -ml-2" />
+                <EditableLicenseName
+                  initialName={license.name}
+                  onNameUpdate={(newName) => updateLicenseField(index, 'name', newName)}
+                  isEditable={license.name !== 'Exclusive Rights'}
+                />
                 <button
                   onClick={() => setFeatured(index)}
                   className={`flex items-center gap-2 text-xs font-bold uppercase py-1 px-3 rounded-full transition-colors ${license.featured ? 'bg-green-500 text-black' : 'bg-neutral-700 text-white hover:bg-neutral-600'}`}
@@ -102,7 +107,7 @@ const LicenseEditor = ({ onLicensesChange }) => {
                 <div>
                   <label className="block text-sm font-bold text-neutral-400 mb-2">Price</label>
                   {license.price !== null ? (
-                    <input type="number" value={license.price} onChange={(e) => updateLicenseField(index, 'price', parseFloat(e.target.value))} className="w-full p-2 bg-neutral-700 border border-neutral-600 rounded-md text-white" />
+                    <input type="number" defaultValue={license.price} onBlur={(e) => updateLicenseField(index, 'price', parseFloat(e.target.value))} className="w-full p-2 bg-neutral-700 border border-neutral-600 rounded-md text-white" />
                   ) : (
                     <div className="w-full p-2 bg-neutral-700 border border-neutral-600 rounded-md text-neutral-400 font-bold">Negotiable</div>
                   )}
@@ -129,7 +134,7 @@ const LicenseEditor = ({ onLicensesChange }) => {
                         {typeof value === 'boolean' ? (
                           <input type="checkbox" checked={value} onChange={(e) => updateUsageTerm(index, term, e.target.checked)} className="w-4 h-4 text-green-600 bg-neutral-800 border-neutral-600 rounded focus:ring-green-500" />
                         ) : (
-                          <input type="text" value={value} onChange={(e) => updateUsageTerm(index, term, e.target.value.toLowerCase() === 'unlimited' ? 'unlimited' : parseInt(e.target.value) || 0)} className="w-full p-2 bg-neutral-700 border border-neutral-600 rounded-md text-white" />
+                          <input type="text" defaultValue={value} onBlur={(e) => updateUsageTerm(index, term, e.target.value.toLowerCase() === 'unlimited' ? 'unlimited' : parseInt(e.target.value) || 0)} className="w-full p-2 bg-neutral-700 border border-neutral-600 rounded-md text-white" />
                         )}
                       </div>
                     ))}

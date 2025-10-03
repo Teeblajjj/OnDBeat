@@ -132,6 +132,8 @@ const UploadPage = () => {
         downloads: 0,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
+        enableContentId: formData.enableContentId,
+        enableFreeDemo: formData.enableFreeDemo,
       };
       
       const newTrackRef = doc(collection(firestore, 'tracks'));

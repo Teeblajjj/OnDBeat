@@ -1,140 +1,139 @@
+import { useState, useEffect } from 'react';
+import { db } from '../lib/firebase';
+import { collection, query, getDocs, orderBy } from 'firebase/firestore';
+import { X, ChevronUp, Mic2, Video, Copy, Signal, Radio, Users } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useModal } from '../context/ModalContext';
 
-import { useState } from 'react';
-import { X, Check, Mic2, Video, Copy, Signal, Users, RadioTower, Star } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+const UsageTerms = ({ terms }) => {
+    const formatNumber = (num) => new Intl.NumberFormat().format(num);
+    const termDetails = {
+        radioStations: { icon: <Radio size={20} className="text-neutral-400"/>, label: (val) => `Radio Broadcasting rights (${val === 'unlimited' ? 'Unlimited' : val} Station${val !== 1 ? 's' : ''})` },
+        musicVideos: { icon: <Video size={20} className="text-neutral-400"/>, label: (val) => `${val === 'unlimited' ? 'Unlimited' : val} Music Video${val !== 1 ? 's' : ''}` },
+        livePerformances: { icon: <Users size={20} className="text-neutral-400"/>, label: () => `For Profit Live Performances` },
+        distributionCopies: { icon: <Copy size={20} className="text-neutral-400"/>, label: (val) => `Distribute up to ${val === 'unlimited' ? 'Unlimited' : formatNumber(val)} copies` },
+        audioStreams: { icon: <Signal size={20} className="text-neutral-400"/>, label: (val) => `${val === 'unlimited' ? 'Unlimited' : formatNumber(val)} Online Audio Streams` },
+    };
+    const displayOrder = ['radioStations', 'musicVideos', 'livePerformances', 'distributionCopies', 'audioStreams'];
 
-// --- Interfaces ---
-interface License {
-  name: string;
-  price: number;
-  files: string;
-  recommended?: boolean;
-  features: string[];
-}
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            {displayOrder.map((key, index) => {
+                const value = terms[key];
+                if (value === 0 || (value === false && key !== 'livePerformances')) return null;
+                const detail = termDetails[key];
+                if (!detail) return null;
+                const isStrikethrough = key === 'livePerformances' && value === false;
 
-interface Beat {
-  id: number;
-  title: string;
-  producer: string;
-  price: number;
-  cover: string;
-  bpm: number;
-  tags: string[];
-  licenses?: License[];
-}
-
-interface BeatModalProps {
-  isOpen: boolean;
-  beat: Beat | null;
-  onClose: () => void;
-  onAddToCart?: () => void;
-  onBuyNow?: () => void;
-}
-
-const featureIcons: { [key: string]: React.ReactElement } = {
-  "Used for Music Recording": <Mic2 size={18} className="text-neutral-400" />,
-  "1 Music Video": <Video size={18} className="text-neutral-400" />,
-  "Unlimited Music Videos": <Video size={18} className="text-neutral-400" />,
-  "Distribute up to 2,000 copies": <Copy size={18} className="text-neutral-400" />,
-  "Distribute up to 5,000 copies": <Copy size={18} className="text-neutral-400" />,
-  "Distribute up to 10,000 copies": <Copy size={18} className="text-neutral-400" />,
-  "Unlimited Distribution": <Copy size={18} className="text-neutral-400" />,
-  "100,000 Online Audio Streams": <Signal size={18} className="text-neutral-400" />,
-  "250,000 Online Audio Streams": <Signal size={18} className="text-neutral-400" />,
-  "500,000 Online Audio Streams": <Signal size={18} className="text-neutral-400" />,
-  "Unlimited Online Audio Streams": <Signal size={18} className="text-neutral-400" />,
-  "For Profit Live Performances": <Users size={18} className="text-neutral-400" />,
-  "Radio Broadcasting Rights (2 Stations)": <RadioTower size={18} className="text-neutral-400" />,
-  "Radio Broadcasting Rights (Unlimited)": <RadioTower size={18} className="text-neutral-400" />,
-  "Exclusive Rights to the Beat": <Star size={18} className="text-yellow-400" />,
+                return (
+                    <motion.div
+                        key={key}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="flex items-start gap-3 text-neutral-300"
+                    >
+                        <div className="w-5 h-5 flex-shrink-0 mt-0.5">{detail.icon}</div>
+                        <span className={isStrikethrough ? 'line-through text-neutral-500' : ''}>{detail.label(value)}</span>
+                    </motion.div>
+                );
+            })}
+        </div>
+    );
 };
 
-const defaultLicenses: License[] = [
-    { name: "MP3", price: 29.99, files: "MP3", features: ["Used for Music Recording", "1 Music Video", "Distribute up to 2,000 copies"] },
-    { name: "WAV", price: 49.99, files: "MP3, WAV", features: ["Used for Music Recording", "Unlimited Music Videos", "Distribute up to 5,000 copies"], recommended: true },
-    { name: "Trackout", price: 99.99, files: "MP3, WAV, Stems", features: ["Used for Music Recording", "Unlimited Music Videos", "Distribute up to 10,000 copies", "For Profit Live Performances"] },
-    { name: "Unlimited", price: 249.99, files: "MP3, WAV, Stems", features: ["Used for Music Recording", "Unlimited Music Videos", "Unlimited Distribution", "Unlimited Online Audio Streams", "For Profit Live Performances", "Radio Broadcasting Rights (Unlimited)"] },
-];
+export default function BeatModal({ isOpen, beat, onClose }) {
+    const { openModal } = useModal();
+    const [licenses, setLicenses] = useState([]);
+    const [selectedLicense, setSelectedLicense] = useState(null);
+    const [isTermsOpen, setIsTermsOpen] = useState(true);
 
-export default function BeatModal({ isOpen, beat, onClose, onAddToCart, onBuyNow }: BeatModalProps) {
-  const licenses = beat?.licenses && beat.licenses.length > 0 ? beat.licenses : defaultLicenses;
-  
-  const recommendedIndex = licenses.findIndex(l => l.recommended);
-  const [selectedIndex, setSelectedIndex] = useState(recommendedIndex !== -1 ? recommendedIndex : 0);
-  
-  const activeLicense = licenses[selectedIndex];
+    useEffect(() => {
+        const fetchLicenses = async () => {
+            if (beat && isOpen) {
+                const licensesQuery = query(collection(db, 'tracks', beat.id, 'licenses'));
+                const licensesSnap = await getDocs(licensesQuery);
+                const licensesData = licensesSnap.docs.map(doc => doc.data());
+                const sortedLicenses = licensesData.sort((a, b) => {
+                    if (a.price === null) return 1;
+                    if (b.price === null) return -1;
+                    return a.price - b.price;
+                });
+                setLicenses(sortedLicenses);
+                setSelectedLicense(sortedLicenses.find(l => l.featured) || sortedLicenses[0] || null);
+            }
+        };
+        fetchLicenses();
+    }, [beat, isOpen]);
 
-  if (!isOpen || !beat) return null;
+    if (!isOpen || !beat) return null;
+    
+    const handleNegotiate = () => {
+        onClose(); // Close the current modal
+        openModal('negotiation', { beat });
+    };
 
-  return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
-      <motion.div 
-        initial={{ y: 20, opacity: 0, scale: 0.95 }}
-        animate={{ y: 0, opacity: 1, scale: 1 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden" 
-        onClick={e => e.stopPropagation()}
-      >
-        <div className="flex justify-between items-center p-6 border-b border-neutral-800 flex-shrink-0">
-            <h2 className="text-2xl font-bold text-white">Choose License</h2>
-            <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
-                <X size={28} />
-            </button>
-        </div>
+    return (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
+            <motion.div 
+                initial={{ y: 20, opacity: 0, scale: 0.95 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col" 
+                onClick={e => e.stopPropagation()}
+            >
+                <div className="flex justify-between items-center p-6 border-b border-neutral-800 flex-shrink-0">
+                    <h2 className="text-2xl font-bold text-white">Choose Your License</h2>
+                    <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors"><X size={28} /></button>
+                </div>
 
-        <div className="flex-grow p-6 space-y-6 overflow-y-auto">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {licenses.map((license, index) => (
-                    <motion.div 
-                        key={index}
-                        onClick={() => setSelectedIndex(index)}
-                        className={`relative p-4 rounded-lg cursor-pointer transition-all duration-200 border-2 ${selectedIndex === index ? 'border-green-500 bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.5)]' : 'border-transparent bg-neutral-800 hover:bg-neutral-700'}`}
-                        whileHover={{ scale: 1.03 }}
-                    >
-                        <h3 className="font-bold text-md text-white">{license.name}</h3>
-                        <p className="text-xl font-bold text-white mt-1">{license.price > 0 ? `$${license.price.toFixed(2)}` : "Negotiate"}</p>
-                        <p className="text-xs text-neutral-400 uppercase font-semibold mt-2">{license.files}</p>
-                    </motion.div>
-                ))}
-            </div>
-            
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={selectedIndex}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    transition={{ duration: 0.2 }}
-                    className="bg-neutral-800/50 p-6 rounded-lg"
-                >
-                    <h3 className="font-semibold text-white mb-4 text-lg">Usage Terms for <span className="text-green-400">{activeLicense.name}</span></h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                        {activeLicense.features.map(feature => (
-                            <div key={feature} className="flex items-center gap-3">
-                                {featureIcons[feature] || <Check size={16} className="flex-shrink-0 text-green-500" />}
-                                <span className="text-neutral-300">{feature}</span>
+                <div className="flex-grow p-6 space-y-6 overflow-y-auto">
+                    <div className="flex justify-between items-center">
+                        <h3 className="text-lg font-bold text-white">Select a License</h3>
+                        {selectedLicense?.name.toLowerCase() === 'exclusive license' ? (
+                            <button onClick={handleNegotiate} className="px-6 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-md">Negotiate</button>
+                        ) : (
+                            <div className="flex items-center gap-4">
+                                <div className="text-right">
+                                    <p className="text-sm text-neutral-400">TOTAL</p>
+                                    <p className="text-xl font-bold text-white">{selectedLicense?.price ? `$${selectedLicense.price.toFixed(2)}` : '...'}</p>
+                                </div>
+                                <button className="px-6 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-md">Buy Now</button>
                             </div>
+                        )}
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                        {licenses.map(license => (
+                            <button 
+                                key={license.name}
+                                onClick={() => setSelectedLicense(license)}
+                                className={`relative p-4 rounded-lg text-left border-2 transition-all ${selectedLicense?.name === license.name ? 'border-green-500 bg-green-500/10' : 'border-neutral-700 hover:border-neutral-600'}`}
+                            >
+                                {license.featured && <div className="absolute top-[-10px] right-2 text-xs bg-green-500 text-black font-bold px-2 py-0.5 rounded-full shadow-lg">Featured</div>}
+                                <h4 className="font-bold text-white capitalize">{license.name === 'Exclusive License' ? 'Exclusive Rights' : license.name}</h4>
+                                <p className="text-sm text-neutral-300">{license.price ? `$${license.price.toFixed(2)}` : 'Negotiable'}</p>
+                                <p className="text-xs text-neutral-400 mt-1">{Object.keys(license.files).filter(f => license.files[f]).join(', ').toUpperCase()}</p>
+                            </button>
                         ))}
                     </div>
-                </motion.div>
-             </AnimatePresence>
+                    
+                    <div className="bg-neutral-900/50 rounded-2xl border border-neutral-800/80">
+                        <button onClick={() => setIsTermsOpen(!isTermsOpen)} className="w-full flex justify-between items-center p-6">
+                            <h2 className="text-xl font-bold text-white">Usage Terms</h2>
+                            <ChevronUp size={20} className={`transition-transform ${!isTermsOpen && 'rotate-180'}`} />
+                        </button>
+                        <AnimatePresence>
+                            {isTermsOpen && selectedLicense && (
+                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+                                    <div className="px-6 pb-6">
+                                        <UsageTerms terms={selectedLicense.usageTerms} />
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
+                </div>
+            </motion.div>
         </div>
-
-        <div className="flex justify-between items-center p-6 border-t border-neutral-800 flex-shrink-0 bg-neutral-900/50">
-            <div>
-              <p className="text-sm text-neutral-400">TOTAL:</p>
-              <p className="text-3xl font-bold text-white">{activeLicense.price > 0 ? `$${activeLicense.price.toFixed(2)}` : "-"}</p>
-            </div>
-            <div className="flex gap-4">
-              <button onClick={onAddToCart} className="bg-neutral-700 hover:bg-neutral-600 text-white font-bold py-3 px-6 rounded-full transition-colors text-lg">
-                  Add to Cart
-              </button>
-              <button onClick={onBuyNow} className="bg-green-500 hover:bg-green-600 text-black font-bold py-3 px-6 rounded-full transition-colors text-lg">
-                  Buy Now
-              </button>
-            </div>
-        </div>
-      </motion.div>
-    </div>
-  );
+    );
 }
