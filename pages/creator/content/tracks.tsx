@@ -2,6 +2,7 @@ import Layout from '../../../components/Layout';
 import { useState } from 'react';
 import { Plus, Music, MoreVertical, Edit, Trash2, Rocket, Search } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
 
 // Mock Data for tracks - replace with actual data from Firestore
 const mockTracks = [
@@ -21,9 +22,11 @@ const TracksPage = () => {
                         <h1 className="text-3xl font-bold text-white">My Tracks</h1>
                         <p className="text-neutral-400 mt-1">Upload, manage, and organize your beats.</p>
                     </div>
-                    <button className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-black font-semibold py-2 px-4 rounded-lg transition-colors mt-4 md:mt-0">
-                        <Plus size={18} /> Upload New Track
-                    </button>
+                    <Link href="/creator/upload" passHref legacyBehavior>
+                      <a className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-black font-semibold py-2 px-4 rounded-lg transition-colors mt-4 md:mt-0">
+                          <Plus size={18} /> Upload New Track
+                      </a>
+                    </Link>
                 </div>
 
                 {tracks.length > 0 ? (
@@ -88,9 +91,11 @@ const TracksPage = () => {
                         <Music size={48} className="mx-auto text-neutral-600 mb-4" />
                         <h2 className="text-xl font-bold text-white mb-2">No tracks uploaded yet</h2>
                         <p className="text-neutral-400 mb-6">Start by uploading your first beat to get it heard.</p>
-                        <button className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-black font-semibold py-2 px-5 rounded-lg transition-colors mx-auto">
-                            <Plus size={18} /> Upload Your First Beat
-                        </button>
+                        <Link href="/creator/upload" passHref legacyBehavior>
+                          <a className="flex items-center gap-2 bg-green-500 hover:bg-green-600 text-black font-semibold py-2 px-5 rounded-lg transition-colors mx-auto">
+                              <Plus size={18} /> Upload Your First Beat
+                          </a>
+                        </Link>
                     </motion.div>
                 )}
             </div>

@@ -1,21 +1,25 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { TrackUpload } from '../../lib/types';
-import { useUploadFile } from 'react-firebase-hooks/storage';
 import { storage, db as firestore } from '../../firebase/config';
-import { ref, getDownloadURL } from 'firebase/storage';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { ref, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
+import { collection, addDoc, serverTimestamp, writeBatch, doc } from 'firebase/firestore';
 import { useRouter } from 'next/router';
 import { Music, UploadCloud, Image as ImageIcon, Loader2, Check } from 'lucide-react';
 import LicenseEditor from '../../components/upload/LicenseEditor';
 import PreviewStep from '../../components/upload/PreviewStep';
-import Layout from '../../components/Layout'; // Import the Layout component
+import Layout from '../../components/Layout';
+import toast from 'react-hot-toast';
+import UploadProgressModal from '../../components/upload/UploadProgressModal';
 
 const UploadPage = () => {
   const { user } = useAuth();
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [coverArtPreview, setCoverArtPreview] = useState<string | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<TrackUpload>({
     title: '',
@@ -37,8 +41,6 @@ const UploadPage = () => {
     coverArtFile: null,
     previewFile: null,
   });
-  
-  const [uploadFile, uploading, snapshot, error] = useUploadFile();
 
   if (!user || !user.isCreator) {
     return (
@@ -69,29 +71,62 @@ const UploadPage = () => {
 
   const handlePublish = async () => {
     if (!formData.beatFile || !formData.title) {
-      alert('Please provide a beat title and the main audio file.');
+      toast.error('Please provide a beat title and the main audio file.');
       return;
     }
 
-    try {
-      let coverImageUrl = '';
-      if (formData.coverArtFile) {
-        const coverArtRef = ref(storage, `tracks/${user.uid}/${Date.now()}_${formData.coverArtFile.name}`);
-        await uploadFile(coverArtRef, formData.coverArtFile);
-        coverImageUrl = await getDownloadURL(coverArtRef);
-      }
+    setIsUploading(true);
+    setUploadProgress(0);
+    setUploadError(null);
 
-      const beatFileRef = ref(storage, `tracks/${user.uid}/${Date.now()}_${formData.beatFile.name}`);
-      await uploadFile(beatFileRef, formData.beatFile);
-      const audioFileUrl = await getDownloadURL(beatFileRef);
+    try {
+      const trackId = `${user.uid}_${Date.now()}`;
+      
+      const uploadTasks = [];
+      if (formData.coverArtFile) uploadTasks.push({ file: formData.coverArtFile, path: `tracks/${trackId}/cover_${formData.coverArtFile.name}` });
+      if (formData.beatFile) uploadTasks.push({ file: formData.beatFile, path: `tracks/${trackId}/beat_${formData.beatFile.name}` });
+      if (formData.previewFile) uploadTasks.push({ file: formData.previewFile, path: `tracks/${trackId}/preview_${formData.previewFile.name}` });
+
+      let totalBytes = uploadTasks.reduce((acc, task) => acc + task.file.size, 0);
+      let bytesTransferred = 0;
+      
+      const urls = await Promise.all(uploadTasks.map(task => {
+        const storageRef = ref(storage, task.path);
+        const uploadTask = uploadBytesResumable(storageRef, task.file);
+
+        return new Promise((resolve, reject) => {
+          uploadTask.on('state_changed',
+            (snapshot) => {
+              const currentFileBytes = snapshot.bytesTransferred;
+              setUploadProgress(((bytesTransferred + currentFileBytes) / totalBytes) * 100);
+            },
+            (error) => reject(error),
+            async () => {
+              bytesTransferred += task.file.size;
+              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+              resolve({ url: downloadURL, path: task.path });
+            }
+          );
+        });
+      }));
 
       const trackData = {
-        ...formData,
+        title: formData.title,
+        description: formData.description,
+        genre: formData.genre,
+        tags: formData.tags,
+        bpm: formData.bpm,
+        key: formData.key,
+        coverImage: urls.find(u => u.path.includes('cover_'))?.url || '',
+        audioFile: urls.find(u => u.path.includes('beat_'))?.url || '',
+        previewUrl: urls.find(u => u.path.includes('preview_'))?.url || '',
+        priceMp3: formData.licenses.find(l => l.name === 'MP3 License')?.price || null,
+        priceWav: formData.licenses.find(l => l.name === 'WAV License')?.price || null,
+        priceStems: formData.licenses.find(l => l.name === 'Trackout License')?.price || null,
+        exclusivePrice: formData.licenses.find(l => l.name === 'Exclusive Rights')?.price || null,
+        isExclusiveAvailable: formData.licenses.some(l => l.name === 'Exclusive Rights'),
         creatorId: user.uid,
         producerName: user.displayName,
-        username: user.username || user.displayName?.toLowerCase(),
-        audioFile: audioFileUrl,
-        coverImage: coverImageUrl,
         plays: 0,
         likes: [],
         downloads: 0,
@@ -99,19 +134,29 @@ const UploadPage = () => {
         updatedAt: serverTimestamp(),
       };
       
-      delete trackData.beatFile;
-      delete trackData.stemsFile;
-      delete trackData.coverArtFile;
-      delete trackData.previewFile;
-      
-      await addDoc(collection(firestore, 'tracks'), trackData);
-      
-      alert('Your beat has been uploaded successfully!');
-      router.push(`/creators/${user.uid}`);
+      const newTrackRef = doc(collection(firestore, 'tracks'));
+      const batch = writeBatch(firestore);
+      batch.set(newTrackRef, trackData);
+      formData.licenses.forEach(license => {
+        const licenseRef = doc(collection(newTrackRef, 'licenses'));
+        batch.set(licenseRef, license);
+      });
+      await batch.commit();
 
-    } catch (e) {
+      setUploadProgress(100);
+      setTimeout(() => {
+        setIsUploading(false);
+        toast.success('Your beat has been uploaded successfully!');
+        router.push('/creator/content/tracks');
+      }, 1000);
+
+    } catch (e: any) {
+      setUploadError(e.message);
       console.error("Error publishing track: ", e);
-      alert('Error publishing track. Please try again.');
+      setTimeout(() => {
+        setIsUploading(false);
+        toast.error('Error publishing track. Please try again.');
+      }, 2000);
     }
   };
 
@@ -130,11 +175,11 @@ const UploadPage = () => {
 
   return (
     <Layout>
+      {isUploading && <UploadProgressModal progress={uploadProgress} error={uploadError} />}
       <div className="container mx-auto px-4 py-8 max-w-5xl">
         <h1 className="text-4xl font-bold text-white mb-4 text-center">Upload Your Beat</h1>
         <p className="text-neutral-400 text-center mb-12">Follow the steps to get your beat ready for the world.</p>
         
-        {/* --- Stepper --- */}
         <div className="mb-12">
           <ol className="flex items-center justify-center w-full">
             {steps.map((s, index) => (
@@ -153,7 +198,6 @@ const UploadPage = () => {
           </ol>
         </div>
 
-        {/* --- Form Body --- */}
         <div className="bg-neutral-900/60 border border-neutral-800/80 rounded-2xl shadow-lg p-8">
             {step === 1 && (
               <div>
@@ -293,8 +337,8 @@ const UploadPage = () => {
                     Next
                     </button>
                 ) : (
-                    <button onClick={handlePublish} className="px-6 py-3 bg-green-600 text-black font-bold rounded-full hover:bg-green-500 flex items-center transition-colors" disabled={uploading}>
-                    {uploading ? <><Loader2 className="animate-spin mr-2" /> Publishing...</> : 'Publish'}
+                    <button onClick={handlePublish} className="px-6 py-3 bg-green-600 text-black font-bold rounded-full hover:bg-green-500 flex items-center transition-colors" disabled={isUploading}>
+                    {isUploading ? <><Loader2 className="animate-spin mr-2" /> Publishing...</> : 'Publish'}
                     </button>
                 )}
             </div>

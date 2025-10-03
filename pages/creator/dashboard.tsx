@@ -2,6 +2,7 @@ import Layout from '../../components/Layout';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Music, TrendingUp, FileText, DollarSign, Upload, Folder, Package, Download, Award } from 'lucide-react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import Link from 'next/link';
 
 // Mock Data
 const user = {
@@ -44,9 +45,11 @@ const achievements = [
 ];
 
 const quickActions = [
-    { label: 'Upload New Track', icon: <Upload /> }, { label: 'Create Collection', icon: <Folder /> },
-    { label: 'Add Sound Kit', icon: <Package /> }, { label: 'Withdraw Funds', icon: <Download /> },
-    { label: 'Create Contract', icon: <FileText /> },
+    { label: 'Upload New Track', icon: <Upload />, href: '/creator/upload' },
+    { label: 'Create Collection', icon: <Folder />, href: '#' },
+    { label: 'Add Sound Kit', icon: <Package />, href: '#' },
+    { label: 'Withdraw Funds', icon: <Download />, href: '#' },
+    { label: 'Create Contract', icon: <FileText />, href: '#' },
 ];
 
 const DashboardPage = () => {
@@ -156,10 +159,12 @@ const DashboardPage = () => {
                      <h2 className="text-xl font-bold text-white mb-4">Quick Actions</h2>
                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
                         {quickActions.map((action, i) => (
-                            <button key={i} className="flex flex-col items-center justify-center p-4 bg-neutral-900/60 rounded-lg border border-neutral-800/80 hover:bg-neutral-800/60 hover:border-green-500/50 transition-colors">
-                                <div className="text-green-400 mb-2">{action.icon}</div>
-                                <span className="text-sm text-white font-semibold text-center">{action.label}</span>
-                            </button>
+                            <Link href={action.href} key={i} passHref legacyBehavior>
+                              <a className="flex flex-col items-center justify-center p-4 bg-neutral-900/60 rounded-lg border border-neutral-800/80 hover:bg-neutral-800/60 hover:border-green-500/50 transition-colors">
+                                  <div className="text-green-400 mb-2">{action.icon}</div>
+                                  <span className="text-sm text-white font-semibold text-center">{action.label}</span>
+                              </a>
+                            </Link>
                         ))}
                      </div>
                 </div>

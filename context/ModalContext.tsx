@@ -2,8 +2,9 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import ShareModal from '../components/ShareModal';
 import BeatModal from '../components/BeatModal';
+import NegotiationModal from '../components/NegotiationModal'; // Import the NegotiationModal
 
-type ModalType = 'share' | 'beat'; // Can be expanded with other modal types
+type ModalType = 'share' | 'beat' | 'negotiation'; // Add 'negotiation' modal type
 
 interface ModalContextType {
   openModal: (type: ModalType, props: any) => void;
@@ -40,6 +41,8 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
         return <ShareModal item={modalProps.item} isVisible={true} onClose={closeModal} />;
       case 'beat':
         return <BeatModal beat={modalProps.beat} isOpen={true} onClose={closeModal} />;
+      case 'negotiation':
+        return <NegotiationModal beat={modalProps.beat} isOpen={true} onClose={closeModal} />;
       default:
         return null;
     }

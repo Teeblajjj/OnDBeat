@@ -2,44 +2,61 @@ import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import { db } from '../../lib/firebase';
 import { doc, getDoc, collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
-import { Play, Heart, Share2, Download, ArrowLeft, Music, ChevronUp, Mic2, Video, Copy, Signal, Radio } from 'lucide-react';
+import { Play, Heart, Share2, Download, ArrowLeft, Music, ChevronUp, Mic2, Video, Copy, Signal, Radio, Users } from 'lucide-react';
 import BeatCard from '../../components/BeatCard';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import CommentsSection from '../../components/CommentsSection';
+import { useModal } from '../../context/ModalContext'; // Import the useModal hook
 
 // --- Helper Components ---
+const UsageTerms = ({ terms }) => {
+    const formatNumber = (num) => new Intl.NumberFormat().format(num);
 
-const iconMap = {
-    Copy: <Copy size={20} className="text-neutral-400"/>,
-    Signal: <Signal size={20} className="text-neutral-400"/>,
-    RadioTower: <Radio size={20} className="text-neutral-400"/>,
-    Video: <Video size={20} className="text-neutral-400"/>,
-    Mic2: <Mic2 size={20} className="text-neutral-400"/>,
+    const termDetails = {
+        distributionCopies: { icon: <Copy size={20} className="text-neutral-400"/>, label: (val) => `Distribute up to ${val === 'unlimited' ? 'Unlimited' : formatNumber(val)} copies` },
+        audioStreams: { icon: <Signal size={20} className="text-neutral-400"/>, label: (val) => `${val === 'unlimited' ? 'Unlimited' : formatNumber(val)} Online Audio Streams` },
+        musicVideos: { icon: <Video size={20} className="text-neutral-400"/>, label: (val) => `${val === 'unlimited' ? 'Unlimited' : val} Music Video${val !== 1 ? 's' : ''}` },
+        livePerformances: { icon: <Users size={20} className="text-neutral-400"/>, label: () => `For Profit Live Performances` },
+        radioStations: { icon: <Radio size={20} className="text-neutral-400"/>, label: (val) => `Radio Broadcasting rights (${val === 'unlimited' ? 'Unlimited' : val} Station${val !== 1 ? 's' : ''})` },
+    };
+    
+    const displayOrder = ['radioStations', 'musicVideos', 'livePerformances', 'distributionCopies', 'audioStreams'];
+
+    return (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            {displayOrder.map((key, index) => {
+                const value = terms[key];
+                if (value === 0 || value === false && key !== 'livePerformances') return null;
+
+                const detail = termDetails[key];
+                if (!detail) return null;
+
+                const isStrikethrough = key === 'livePerformances' && value === false;
+
+                return (
+                    <motion.div
+                        key={key}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="flex items-start gap-3 text-neutral-300"
+                    >
+                        <div className="w-5 h-5 flex-shrink-0 mt-0.5">{detail.icon}</div>
+                        <span className={isStrikethrough ? 'line-through text-neutral-500' : ''}>{detail.label(value)}</span>
+                    </motion.div>
+                );
+            })}
+        </div>
+    );
 };
 
-const UsageTerms = ({ terms }) => (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4">
-        {Array.isArray(terms) && terms.map((term, index) => (
-            <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="flex items-start gap-3 text-neutral-300"
-            >
-                <div className="w-5 h-5 flex-shrink-0 mt-0.5">{iconMap[term.icon]}</div>
-                <span>{term.text}</span>
-            </motion.div>
-        ))}
-    </div>
-);
 
 // --- Main Page Component ---
-
 const BeatDetailPage = ({ track, creator, moreTracks, licenses, comments }) => {
     const router = useRouter();
-    const [selectedLicense, setSelectedLicense] = useState(licenses.find(l => l.licenseType === 'premium') || licenses[0] || null);
+    const { openModal } = useModal();
+    const [selectedLicense, setSelectedLicense] = useState(licenses.find(l => l.featured) || licenses[0] || null);
     const [isTermsOpen, setIsTermsOpen] = useState(true);
     const [publishedDate, setPublishedDate] = useState('');
 
@@ -52,7 +69,9 @@ const BeatDetailPage = ({ track, creator, moreTracks, licenses, comments }) => {
     if (router.isFallback) return <div className="h-screen w-full flex items-center justify-center text-white">Loading...</div>;
 
     const handleAddToCart = () => console.log('Added to cart:', selectedLicense);
-    const handleNegotiate = () => console.log('Negotiating for:', selectedLicense);
+    const handleNegotiate = () => {
+        openModal('negotiation', { beat: track });
+    };
 
     return (
         <Layout>
@@ -79,7 +98,7 @@ const BeatDetailPage = ({ track, creator, moreTracks, licenses, comments }) => {
                             <h1 className="text-2xl font-bold text-white">{track.title}</h1>
                             <p className="text-md text-neutral-400">by {creator?.displayName || 'Unknown Artist'}</p>
                             <div className="flex items-center justify-around text-neutral-400 my-4 py-2 border-y border-neutral-800">
-                                <button className="flex flex-col items-center gap-1 hover:text-white"><Heart size={20}/> <span className="text-xs">{track.likes}</span></button>
+                                <button className="flex flex-col items-center gap-1 hover:text-white"><Heart size={20}/> <span className="text-xs">{track.likes?.length || 0}</span></button>
                                 <button className="flex flex-col items-center gap-1 hover:text-white"><Share2 size={20}/> <span className="text-xs">Share</span></button>
                                 <button className="flex flex-col items-center gap-1 hover:text-white"><Download size={20}/> <span className="text-xs">Free</span></button>
                             </div>
@@ -104,36 +123,42 @@ const BeatDetailPage = ({ track, creator, moreTracks, licenses, comments }) => {
                         <div className="bg-neutral-900/50 p-6 rounded-2xl border border-neutral-800/80">
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-2xl font-bold text-white">Licensing</h2>
-                                <div className="flex items-center gap-4">
-                                    <div className="text-right">
-                                        <p className="text-sm text-neutral-400">TOTAL</p>
-                                        <p className="text-xl font-bold text-white">${selectedLicense?.price.toFixed(2)}</p>
+                                {selectedLicense?.name !== 'Exclusive Rights' && (
+                                    <div className="flex items-center gap-4">
+                                        <div className="text-right">
+                                            <p className="text-sm text-neutral-400">TOTAL</p>
+                                            <p className="text-xl font-bold text-white">{selectedLicense?.price ? `$${selectedLicense.price.toFixed(2)}` : 'Negotiable'}</p>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button onClick={handleAddToCart} className="px-4 py-2 text-sm font-semibold bg-neutral-700 hover:bg-neutral-600 rounded-md">Add to Cart</button>
+                                            <button onClick={() => {}} className="px-6 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-md">Buy Now</button>
+                                        </div>
                                     </div>
-                                    <div className="flex gap-2">
-                                         {selectedLicense?.licenseType === 'exclusive' ? (
-                                             <button onClick={handleNegotiate} className="px-6 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-md">Negotiate</button>
-                                         ) : (
-                                            <>
-                                                <button onClick={handleAddToCart} className="px-4 py-2 text-sm font-semibold bg-neutral-700 hover:bg-neutral-600 rounded-md">Add to Cart</button>
-                                                <button onClick={() => {}} className="px-6 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-md">Buy Now</button>
-                                            </>
-                                         )}
-                                    </div>
-                                </div>
+                                )}
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                                 {licenses.map(license => (
                                     <button 
-                                        key={license.licenseType}
+                                        key={license.name}
                                         onClick={() => setSelectedLicense(license)}
-                                        className={`p-4 rounded-lg text-left border-2 transition-all ${selectedLicense?.licenseType === license.licenseType ? 'border-green-500 bg-green-500/10' : 'border-neutral-700 hover:border-neutral-600'}`}
+                                        className={`relative p-4 rounded-lg text-left border-2 transition-all ${selectedLicense?.name === license.name ? 'border-green-500 bg-green-500/10' : 'border-neutral-700 hover:border-neutral-600'}`}
                                     >
-                                        <h4 className="font-bold text-white capitalize">{license.licenseType} License</h4>
-                                        <p className="text-sm text-neutral-300">${license.price.toFixed(2)}</p>
-                                        <p className="text-xs text-neutral-400 mt-1">{license.files}</p>
+                                        {license.featured && (
+                                          <div className="absolute top-[-10px] right-2 text-xs bg-green-500 text-black font-bold px-2 py-0.5 rounded-full shadow-lg">
+                                            Featured
+                                          </div>
+                                        )}
+                                        <h4 className="font-bold text-white capitalize">{license.name}</h4>
+                                        <p className="text-sm text-neutral-300">{license.price ? `$${license.price.toFixed(2)}` : 'Negotiable'}</p>
+                                        <p className="text-xs text-neutral-400 mt-1">{Object.keys(license.files).filter(f => license.files[f]).join(', ').toUpperCase()}</p>
                                     </button>
                                 ))}
                             </div>
+                            {selectedLicense?.name === 'Exclusive Rights' && (
+                                <div className="mt-4 text-right">
+                                    <button onClick={handleNegotiate} className="px-6 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-md">Negotiate</button>
+                                </div>
+                            )}
                         </div>
 
                         <div className="bg-neutral-900/50 rounded-2xl border border-neutral-800/80">
@@ -185,9 +210,15 @@ export async function getServerSideProps(context) {
         if (creatorSnap.exists()) creator = { id: creatorSnap.id, ...creatorSnap.data(), createdAt: null };
     }
     
-    const licensesQuery = query(collection(db, 'tracks', id, 'licenses'), orderBy('price'));
+    const licensesQuery = query(collection(db, 'tracks', id, 'licenses'));
     const licensesSnap = await getDocs(licensesQuery);
-    const licenses = licensesSnap.docs.map(doc => doc.data());
+    const licensesData = licensesSnap.docs.map(doc => doc.data());
+    
+    const licenses = licensesData.sort((a, b) => {
+        if (a.price === null) return 1;
+        if (b.price === null) return -1;
+        return a.price - b.price;
+    });
     
     const commentsQuery = query(collection(db, 'tracks', id, 'comments'), orderBy('createdAt', 'desc'), limit(10));
     const commentsSnap = await getDocs(commentsQuery);
