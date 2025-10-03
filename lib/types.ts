@@ -17,7 +17,8 @@ export interface License {
     stems: boolean;
   };
   usageTerms: UsageTerms;
-  isDefault?: boolean; // To distinguish from custom licenses
+  isDefault?: boolean;
+  featured?: boolean; // Added to mark a license as featured
 }
 
 export interface TrackUpload {
@@ -40,7 +41,7 @@ export interface TrackUpload {
   referenceArtists?: string[];
 
   // --- Step 3: Licensing & Pricing
-  licenses: License[]; // Replaces flat price fields
+  licenses: License[];
 
   // --- Step 4: Publishing Info
   proOrganization?: string;
