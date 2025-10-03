@@ -1,5 +1,5 @@
 
-import { Play, Pause, ShoppingCart, Heart, MessageCircle, Upload, MoreVertical, UserCircle, Music } from "lucide-react";
+import { Play, Pause, ShoppingCart, Heart, MessageCircle, Share2, MoreVertical, UserCircle, Music } from "lucide-react";
 import { usePlayer } from "../context/PlayerContext";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -9,6 +9,7 @@ import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { CommentSection } from "./CommentSection";
 import { AnimatedHeart } from "./AnimatedHeart";
 import { AnimatePresence } from "framer-motion";
+import ShareModal from "./ShareModal";
 
 export const FeedItem = ({ item, collectionName }) => {
     const { playTrack, currentTrack, isPlaying } = usePlayer();
@@ -20,6 +21,7 @@ export const FeedItem = ({ item, collectionName }) => {
     const [likeCount, setLikeCount] = useState(0);
     const [showCommentSection, setShowCommentSection] = useState(false);
     const [animatedHearts, setAnimatedHearts] = useState([]);
+    const [isShareModalOpen, setShareModalOpen] = useState(false);
 
     const producerName = item.producer?.displayName || "Unknown Artist";
     const producerHandle = item.producer?.displayName?.toLowerCase().replace(/\s/g, '') || "unknown";
@@ -133,7 +135,7 @@ export const FeedItem = ({ item, collectionName }) => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-6">
-                 <Link href={`/${collectionName}/${item.id}`} legacyBehavior>
+                 <Link href={`/beats/${item.id}`} legacyBehavior>
                     <a className="w-full sm:w-40 h-40 bg-neutral-800 rounded-md flex-shrink-0 flex items-center justify-center relative overflow-hidden cursor-pointer">
                         {item.coverImage ? (
                             <img src={item.coverImage} alt={item.title} className="w-full h-full object-cover" />
@@ -148,7 +150,7 @@ export const FeedItem = ({ item, collectionName }) => {
                         <button onClick={() => playTrack(item)} className="text-white bg-green-500/10 rounded-full p-2 hover:bg-green-500/20 transition-colors">
                             {currentTrack?.id === item.id && isPlaying ? <Pause size={32} /> : <Play size={32} className="ml-1" />}
                         </button>
-                         <Link href={`/${collectionName}/${item.id}`} legacyBehavior>
+                         <Link href={`/beats/${item.id}`} legacyBehavior>
                             <a className="hover:underline">
                                 <h3 className="text-xl sm:text-2xl font-bold text-white flex-grow">{item.title}</h3>
                             </a>
@@ -178,10 +180,13 @@ export const FeedItem = ({ item, collectionName }) => {
                 <button onClick={() => setShowCommentSection(!showCommentSection)} className="flex items-center gap-2 hover:text-green-400 transition-colors">
                     <MessageCircle size={20} /> <span>{item.comments?.length || 0}</span>
                 </button>
-                <button className="flex items-center gap-2 hover:text-green-400 transition-colors"><Upload size={20} /> <span>{item.shares || 0}</span></button>
+                <button onClick={() => setShareModalOpen(true)} className="flex items-center gap-2 hover:text-green-400 transition-colors">
+                    <Share2 size={20} /> <span>{item.shares || 0}</span>
+                </button>
             </div>
 
             {showCommentSection && <CommentSection beatId={item.id} comments={item.comments} collectionName={collectionName} />}
+            <ShareModal item={item} isVisible={isShareModalOpen} onClose={() => setShareModalOpen(false)} />
         </div>
     );
 };
