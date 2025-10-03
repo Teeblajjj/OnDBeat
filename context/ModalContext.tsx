@@ -1,8 +1,9 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
 import ShareModal from '../components/ShareModal';
+import BeatModal from '../components/BeatModal';
 
-type ModalType = 'share'; // Can be expanded with other modal types
+type ModalType = 'share' | 'beat'; // Can be expanded with other modal types
 
 interface ModalContextType {
   openModal: (type: ModalType, props: any) => void;
@@ -37,6 +38,8 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     switch (modalType) {
       case 'share':
         return <ShareModal item={modalProps.item} isVisible={true} onClose={closeModal} />;
+      case 'beat':
+        return <BeatModal beat={modalProps.beat} isOpen={true} onClose={closeModal} />;
       default:
         return null;
     }

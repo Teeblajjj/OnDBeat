@@ -9,11 +9,13 @@ import { doc, updateDoc, arrayUnion, arrayRemove } from "firebase/firestore";
 import { CommentSection } from "./CommentSection";
 import { AnimatedHeart } from "./AnimatedHeart";
 import { AnimatePresence } from "framer-motion";
-import ShareModal from "./ShareModal";
+import { useModal } from "../context/ModalContext"; // Import the useModal hook
+import { TbShoppingCartPlus } from "react-icons/tb";
 
 export const FeedItem = ({ item, collectionName }) => {
     const { playTrack, currentTrack, isPlaying } = usePlayer();
     const { user } = useAuth();
+    const { openModal } = useModal(); // Use the modal context
 
     const [timeAgo, setTimeAgo] = useState('');
     const [releaseDate, setReleaseDate] = useState('...');
@@ -21,7 +23,6 @@ export const FeedItem = ({ item, collectionName }) => {
     const [likeCount, setLikeCount] = useState(0);
     const [showCommentSection, setShowCommentSection] = useState(false);
     const [animatedHearts, setAnimatedHearts] = useState([]);
-    const [isShareModalOpen, setShareModalOpen] = useState(false);
 
     const producerName = item.producer?.displayName || "Unknown Artist";
     const producerHandle = item.producer?.displayName?.toLowerCase().replace(/\s/g, '') || "unknown";
@@ -158,8 +159,8 @@ export const FeedItem = ({ item, collectionName }) => {
                     </div>
                     <p className="text-neutral-400 mt-2">Released on {releaseDate}</p>
                     <p className="text-neutral-300 my-3 text-sm">{item.description}</p>
-                    <button className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-full flex items-center gap-2 transition-all shadow-md hover:shadow-green-500/30">
-                        <ShoppingCart size={16} />
+                    <button onClick={() => openModal('beat', { beat: item })} className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-full flex items-center gap-2 transition-all shadow-md hover:shadow-green-500/30">
+                        <TbShoppingCartPlus size={16} />
                         <span>${item.priceWav || 'N/A'}</span>
                     </button>
                 </div>
@@ -180,13 +181,12 @@ export const FeedItem = ({ item, collectionName }) => {
                 <button onClick={() => setShowCommentSection(!showCommentSection)} className="flex items-center gap-2 hover:text-green-400 transition-colors">
                     <MessageCircle size={20} /> <span>{item.comments?.length || 0}</span>
                 </button>
-                <button onClick={() => setShareModalOpen(true)} className="flex items-center gap-2 hover:text-green-400 transition-colors">
+                <button onClick={() => openModal('share', { item: item })} className="flex items-center gap-2 hover:text-green-400 transition-colors">
                     <Share2 size={20} /> <span>{item.shares || 0}</span>
                 </button>
             </div>
 
             {showCommentSection && <CommentSection beatId={item.id} comments={item.comments} collectionName={collectionName} />}
-            <ShareModal item={item} isVisible={isShareModalOpen} onClose={() => setShareModalOpen(false)} />
         </div>
     );
 };

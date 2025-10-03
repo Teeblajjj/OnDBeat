@@ -17,7 +17,7 @@ interface Beat {
   cover: string;
   bpm: number;
   tags: string[];
-  licenses: License[];
+  licenses?: License[];
 }
 
 interface BeatModalProps {
@@ -51,9 +51,10 @@ const featureIcons: { [key: string]: React.ReactElement } = {
 export default function BeatModal({ isOpen, beat, onClose, selectedLicense, onLicenseSelect, onAddToCart, onBuyNow }: BeatModalProps) {
   if (!isOpen || !beat) return null;
 
-  const recommendedIndex = beat.licenses.findIndex(l => l.recommended);
+  const licenses = beat.licenses || [];
+  const recommendedIndex = licenses.findIndex(l => l.recommended);
   const activeLicenseIndex = selectedLicense ?? (recommendedIndex !== -1 ? recommendedIndex : 0);
-  const activeLicense = beat.licenses[activeLicenseIndex];
+  const activeLicense = licenses[activeLicenseIndex];
 
   return (
     <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4 backdrop-blur-sm" onClick={onClose}>
@@ -72,7 +73,7 @@ export default function BeatModal({ isOpen, beat, onClose, selectedLicense, onLi
         <div className="flex-grow overflow-y-auto p-8">
             {/* License Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-                {beat.licenses.map((license, index) => (
+                {licenses.map((license, index) => (
                     <div 
                         key={index}
                         onClick={() => onLicenseSelect(index)}
