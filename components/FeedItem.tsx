@@ -5,16 +5,28 @@ import { useState, useEffect } from "react";
 
 export const FeedItem = ({ beat }) => {
     const { playTrack, currentTrack, isPlaying } = usePlayer();
+    
+    // State for client-side only rendering to prevent hydration mismatch
     const [timeAgo, setTimeAgo] = useState('');
+    const [releaseDate, setReleaseDate] = useState('...'); // Start with a placeholder
 
     const producerName = beat.producer?.displayName || "Unknown Artist";
     const producerHandle = beat.producer?.displayName?.toLowerCase().replace(/\s/g, '') || "unknown";
     const producerAvatar = beat.producer?.photoURL;
 
     useEffect(() => {
+        // This entire block runs only on the client-side, after the initial render.
+        const createdAtDate = beat.createdAt ? new Date(beat.createdAt) : null;
+        if (!createdAtDate) {
+            setTimeAgo('some time');
+            setReleaseDate('Unknown');
+            return;
+        }
+
+        // --- Calculate Time Ago ---
         const timeSince = (date) => {
-            if (!date) return 'some time';
             const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+            if (seconds < 5) return "just now";
             let interval = seconds / 31536000;
             if (interval > 1) return Math.floor(interval) + "y";
             interval = seconds / 2592000;
@@ -27,15 +39,16 @@ export const FeedItem = ({ beat }) => {
             if (interval > 1) return Math.floor(interval) + "m";
             return Math.floor(seconds) + "s";
         };
-
-        const createdAtDate = beat.createdAt ? new Date(beat.createdAt) : null;
         setTimeAgo(timeSince(createdAtDate));
-    }, [beat.createdAt]);
 
-    const createdAtDate = beat.createdAt ? new Date(beat.createdAt) : null;
-    const releaseDate = createdAtDate 
-        ? createdAtDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) 
-        : 'Unknown';
+        // --- Calculate Release Date ---
+        setReleaseDate(createdAtDate.toLocaleDateString('en-US', { 
+            month: 'long', 
+            day: 'numeric', 
+            year: 'numeric' 
+        }));
+
+    }, [beat.createdAt]);
 
     return (
         <div className="bg-[#181818] border border-neutral-800 rounded-lg p-4 sm:p-6 shadow-lg transform hover:scale-[1.01] transition-transform duration-300">
@@ -57,7 +70,7 @@ export const FeedItem = ({ beat }) => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-6">
-                <Link href={`/beats/${beat.id}`} legacyBehavior>
+                 <Link href={`/beats/${beat.id}`} legacyBehavior>
                     <a className="w-full sm:w-40 h-40 bg-neutral-800 rounded-md flex-shrink-0 flex items-center justify-center relative overflow-hidden cursor-pointer">
                         {beat.coverImage ? (
                             <img src={beat.coverImage} alt={beat.title} className="w-full h-full object-cover" />
@@ -72,7 +85,7 @@ export const FeedItem = ({ beat }) => {
                         <button onClick={() => playTrack(beat)} className="text-white bg-green-500/10 rounded-full p-2 hover:bg-green-500/20 transition-colors">
                             {currentTrack?.id === beat.id && isPlaying ? <Pause size={32} /> : <Play size={32} className="ml-1" />}
                         </button>
-                        <Link href={`/beats/${beat.id}`} legacyBehavior>
+                         <Link href={`/beats/${beat.id}`} legacyBehavior>
                             <a className="hover:underline">
                                 <h3 className="text-xl sm:text-2xl font-bold text-white flex-grow">{beat.title}</h3>
                             </a>

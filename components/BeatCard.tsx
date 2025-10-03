@@ -1,8 +1,7 @@
-
-import { Download, Play, Image } from 'lucide-react';
+import { Download, Play, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
-import Frame from './Frame'; // Import the new Frame component
+import Frame from './Frame';
 
 interface Beat {
   id: string;
@@ -22,7 +21,7 @@ const BeatCard = ({ beat }: { beat: Beat }) => {
   return (
     <div className="w-full h-full flex flex-col group">
       {/* Use the Frame component for the cover art */}
-      <Frame className="relative mb-2 aspect-w-1 aspect-h-1">
+      <Frame className="relative mb-2 aspect-square"> {/* Changed to aspect-square for uniform size */}
         <Link href={`/beats/${beat.id}`} legacyBehavior>
           <a className="block w-full h-full">
             {beat.cover && !imageError ? (
@@ -34,7 +33,7 @@ const BeatCard = ({ beat }: { beat: Beat }) => {
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center bg-neutral-900">
-                <Image size={128} className="text-neutral-600" />
+                <ImageIcon size={64} className="text-neutral-600" /> {/* Adjusted placeholder size */}
               </div>
             )}
             <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 flex items-center justify-center transition-opacity duration-300">
@@ -46,7 +45,7 @@ const BeatCard = ({ beat }: { beat: Beat }) => {
         </Link>
       </Frame>
 
-      {/* Beat Details */}
+      {/* Beat Details (unchanged) */}
       <div className="flex flex-col flex-grow">
         <Link href={`/beats/${beat.id}`} legacyBehavior>
           <a className='hover:underline'>
@@ -54,8 +53,6 @@ const BeatCard = ({ beat }: { beat: Beat }) => {
           </a>
         </Link>
         <p className="text-neutral-400 text-xs truncate">{beat.artist}</p>
-
-        {/* Combined Price and Action Button */}
         <div className="mt-auto pt-2">
           <button className="flex items-center justify-between w-full px-3 py-1.5 text-sm font-semibold text-white bg-neutral-800/50 border border-neutral-700 rounded-md hover:border-green-500 hover:bg-neutral-800/80 transition-colors">
             <span className="font-mono">${beat.price.toFixed(2)}</span>
