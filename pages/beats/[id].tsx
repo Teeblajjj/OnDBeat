@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
 import { db } from '../../lib/firebase';
-import { doc, getDoc, collection, query, where, getDocs, limit, orderBy } from 'firebase/firestore';
-import { Play, Heart, Share2, Download, ArrowLeft, Music, ChevronUp, Mic2, Video, Copy, Signal, Radio, Users } from 'lucide-react';
+import { doc, getDoc, collection, query, where, getDocs, limit, orderBy, updateDoc, arrayUnion, arrayRemove } from 'firebase/firestore';
+import { Play, Heart, Share2, Download, ArrowLeft, Music, ChevronUp, Mic2, Video, Copy, Signal, Radio, Users, ListPlus } from 'lucide-react';
 import BeatCard from '../../components/BeatCard';
 import { useRouter } from 'next/router';
 import { motion, AnimatePresence } from 'framer-motion';
 import CommentsSection from '../../components/CommentsSection';
-import { useModal } from '../../context/ModalContext'; // Import the useModal hook
+import { useModal } from '../../context/ModalContext';
+import { useAuth } from '../../context/AuthContext';
+import { AnimatedHeart } from '../../components/AnimatedHeart';
 
 // --- Helper Components ---
 const UsageTerms = ({ terms }) => {
@@ -56,21 +58,75 @@ const UsageTerms = ({ terms }) => {
 const BeatDetailPage = ({ track, creator, moreTracks, licenses, comments }) => {
     const router = useRouter();
     const { openModal } = useModal();
+    const { user } = useAuth();
     const [selectedLicense, setSelectedLicense] = useState(licenses.find(l => l.featured) || licenses[0] || null);
     const [isTermsOpen, setIsTermsOpen] = useState(true);
     const [publishedDate, setPublishedDate] = useState('');
+    const [isLiked, setIsLiked] = useState(false);
+    const [likeCount, setLikeCount] = useState(track.likes?.length || 0);
+    const [animatedHearts, setAnimatedHearts] = useState([]);
 
     useEffect(() => {
         if (track.createdAt) {
             setPublishedDate(new Date(track.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }));
         }
     }, [track.createdAt]);
+    
+    useEffect(() => {
+        setIsLiked(user ? track.likes?.includes(user.uid) : false);
+        setLikeCount(track.likes?.length || 0);
+    }, [track.likes, user]);
 
     if (router.isFallback) return <div className="h-screen w-full flex items-center justify-center text-white">Loading...</div>;
 
     const handleAddToCart = () => console.log('Added to cart:', selectedLicense);
     const handleNegotiate = () => {
         openModal('negotiation', { beat: track });
+    };
+    
+    const handleAnimationComplete = (id) => {
+        setAnimatedHearts((prev) => prev.filter((heart) => heart.id !== id));
+    };
+
+    const handleLike = async () => {
+        if (!user) {
+            openModal('auth');
+            return;
+        }
+
+        const trackRef = doc(db, "tracks", track.id);
+        const newIsLiked = !isLiked;
+
+        setIsLiked(newIsLiked);
+        setLikeCount(prev => newIsLiked ? prev + 1 : prev - 1);
+        
+        if (newIsLiked) {
+            const newHearts = Array.from({ length: 5 }, (_, i) => ({ id: Date.now() + i }));
+            setAnimatedHearts((prev) => [...prev, ...newHearts]);
+        }
+
+        try {
+            if (newIsLiked) {
+                await updateDoc(trackRef, { likes: arrayUnion(user.uid) });
+            } else {
+                await updateDoc(trackRef, { likes: arrayRemove(user.uid) });
+            }
+        } catch (error) {
+            console.error("Error updating like status:", error);
+            setIsLiked(!newIsLiked);
+            setLikeCount(prev => newIsLiked ? prev - 1 : prev + 1);
+        }
+    };
+    
+    const handleDownload = () => {
+        if (track.enableFreeDemo) {
+            const link = document.createElement('a');
+            link.href = track.previewUrl;
+            link.download = `${track.title} - Preview.mp3`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     };
 
     return (
@@ -98,9 +154,22 @@ const BeatDetailPage = ({ track, creator, moreTracks, licenses, comments }) => {
                             <h1 className="text-2xl font-bold text-white">{track.title}</h1>
                             <p className="text-md text-neutral-400">by {creator?.displayName || 'Unknown Artist'}</p>
                             <div className="flex items-center justify-around text-neutral-400 my-4 py-2 border-y border-neutral-800">
-                                <button className="flex flex-col items-center gap-1 hover:text-white"><Heart size={20}/> <span className="text-xs">{track.likes?.length || 0}</span></button>
-                                <button className="flex flex-col items-center gap-1 hover:text-white"><Share2 size={20}/> <span className="text-xs">Share</span></button>
-                                <button className="flex flex-col items-center gap-1 hover:text-white"><Download size={20}/> <span className="text-xs">Free</span></button>
+                                <div className="relative">
+                                    <button onClick={handleLike} className={`flex flex-col items-center gap-1 transition-colors ${isLiked ? 'text-green-400' : 'hover:text-white'}`}>
+                                       <Heart size={20} fill={isLiked ? "currentColor" : "none"} /> 
+                                       <span className="text-xs">{likeCount}</span>
+                                    </button>
+                                    <AnimatePresence>
+                                        {animatedHearts.map((heart) => (
+                                            <AnimatedHeart key={heart.id} id={heart.id} onAnimationComplete={handleAnimationComplete} />
+                                        ))}
+                                    </AnimatePresence>
+                                </div>
+                                <button onClick={() => openModal('share', { item: track })} className="flex flex-col items-center gap-1 hover:text-white"><Share2 size={20}/> <span className="text-xs">Share</span></button>
+                                <button onClick={() => openModal('playlist', { track: track })} className="flex flex-col items-center gap-1 hover:text-white"><ListPlus size={20}/> <span className="text-xs">Add to Playlist</span></button>
+                                {track.enableFreeDemo && (
+                                    <button onClick={handleDownload} className="flex flex-col items-center gap-1 hover:text-white"><Download size={20}/> <span className="text-xs">Download</span></button>
+                                )}
                             </div>
                         </div>
                         <div className="bg-neutral-900/50 p-6 rounded-2xl border border-neutral-800/80 text-sm">
@@ -123,7 +192,9 @@ const BeatDetailPage = ({ track, creator, moreTracks, licenses, comments }) => {
                         <div className="bg-neutral-900/50 p-6 rounded-2xl border border-neutral-800/80">
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-2xl font-bold text-white">Licensing</h2>
-                                {selectedLicense?.name !== 'Exclusive Rights' && (
+                                {selectedLicense?.name.toLowerCase() === 'exclusive license' ? (
+                                    <button onClick={handleNegotiate} className="px-6 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-md">Negotiate</button>
+                                ) : (
                                     <div className="flex items-center gap-4">
                                         <div className="text-right">
                                             <p className="text-sm text-neutral-400">TOTAL</p>
@@ -148,17 +219,12 @@ const BeatDetailPage = ({ track, creator, moreTracks, licenses, comments }) => {
                                             Featured
                                           </div>
                                         )}
-                                        <h4 className="font-bold text-white capitalize">{license.name}</h4>
+                                        <h4 className="font-bold text-white capitalize">{license.name === 'Exclusive License' ? 'Exclusive Rights' : license.name}</h4>
                                         <p className="text-sm text-neutral-300">{license.price ? `$${license.price.toFixed(2)}` : 'Negotiable'}</p>
                                         <p className="text-xs text-neutral-400 mt-1">{Object.keys(license.files).filter(f => license.files[f]).join(', ').toUpperCase()}</p>
                                     </button>
                                 ))}
                             </div>
-                            {selectedLicense?.name === 'Exclusive Rights' && (
-                                <div className="mt-4 text-right">
-                                    <button onClick={handleNegotiate} className="px-6 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-md">Negotiate</button>
-                                </div>
-                            )}
                         </div>
 
                         <div className="bg-neutral-900/50 rounded-2xl border border-neutral-800/80">
