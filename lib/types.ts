@@ -1,10 +1,31 @@
 import { Timestamp } from 'firebase/firestore';
 
+export interface UsageTerms {
+  distributionCopies: number | 'unlimited';
+  audioStreams: number | 'unlimited';
+  musicVideos: number | 'unlimited';
+  livePerformances: boolean;
+  radioStations: number | 'unlimited';
+}
+
+export interface License {
+  name: string;
+  price: number | null;
+  files: {
+    mp3: boolean;
+    wav: boolean;
+    stems: boolean;
+  };
+  usageTerms: UsageTerms;
+  isDefault?: boolean; // To distinguish from custom licenses
+}
+
 export interface TrackUpload {
   // --- Files (Not in DB, for FE state)
   beatFile?: File | null;
   stemsFile?: File | null;
   coverArtFile?: File | null;
+  previewFile?: File | null; // Added for separate preview upload
 
   // --- Step 1: Core Info
   title: string;
@@ -19,11 +40,7 @@ export interface TrackUpload {
   referenceArtists?: string[];
 
   // --- Step 3: Licensing & Pricing
-  priceMp3: number | null;
-  priceWav: number | null;
-  priceStems: number | null;
-  exclusivePrice: number | null;
-  isExclusiveAvailable: boolean;
+  licenses: License[]; // Replaces flat price fields
 
   // --- Step 4: Publishing Info
   proOrganization?: string;
