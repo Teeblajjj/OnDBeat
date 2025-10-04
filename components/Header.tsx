@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { useModal } from '../context/ModalContext';
 import NotificationDropdown from './NotificationDropdown';
+import { useRouter } from 'next/router';
 
 const Header = () => {
     const { user, viewAsCreator, toggleView, logout } = useAuth();
@@ -14,6 +15,7 @@ const Header = () => {
     const [isNotificationDropdownOpen, setNotificationDropdownOpen] = useState(false);
     const userDropdownRef = useRef<HTMLDivElement>(null);
     const notificationDropdownRef = useRef<HTMLDivElement>(null);
+    const router = useRouter();
 
     const toggleUserDropdown = () => setUserDropdownOpen(!isUserDropdownOpen);
     const toggleNotificationDropdown = () => setNotificationDropdownOpen(!isNotificationDropdownOpen);
@@ -30,6 +32,15 @@ const Header = () => {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+
+    const handleToggleView = () => {
+        toggleView();
+        if (!viewAsCreator) {
+            router.push('/creator/dashboard');
+        } else {
+            router.push('/');
+        }
+    };
 
     const cartItemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -92,7 +103,7 @@ const Header = () => {
                                             <div className="border-t border-neutral-800 my-1"></div>
                                             <div className="px-4 py-2 flex items-center justify-between">
                                                 <label htmlFor="view-toggle" className="text-sm font-medium text-neutral-300">Creator Mode</label>
-                                                <div onClick={toggleView} className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors ${viewAsCreator ? 'bg-green-500' : 'bg-neutral-700'}`}>
+                                                <div onClick={handleToggleView} className={`relative inline-flex items-center h-6 rounded-full w-11 cursor-pointer transition-colors ${viewAsCreator ? 'bg-green-500' : 'bg-neutral-700'}`}>
                                                     <span className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform ${viewAsCreator ? 'translate-x-6' : 'translate-x-1'}`}/>
                                                 </div>
                                             </div>

@@ -3,7 +3,7 @@ import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndP
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import toast from 'react-hot-toast';
-import { useModal } from './ModalContext'; // Import useModal
+import { useModal } from './ModalContext';
 
 // Define the user profile structure
 interface UserProfile {
@@ -35,7 +35,7 @@ type AuthMode = 'signin' | 'signup';
 
 interface AuthContextType {
   user: AppUser | null;
-  isAuthModalOpen: boolean;
+  isAuthMdalOpen: boolean;
   authMode: AuthMode;
   openAuthModal: (mode: AuthMode) => void;
   closeModal: () => void;
@@ -148,11 +148,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setViewAsCreator(prev => !prev);
     }
   };
-  
-  const contextUser = user ? { ...user, isCreator: viewAsCreator } : null;
 
   return (
-    <AuthContext.Provider value={{ user: contextUser, isAuthModalOpen, authMode, openAuthModal, closeModal: closeAuthModal, toggleView, viewAsCreator, logout, login, signUp }}>
+    <AuthContext.Provider value={{ user, isAuthModalOpen, authMode, openAuthModal, closeModal: closeAuthModal, toggleView, viewAsCreator, logout, login, signUp }}>
       {children}
     </AuthContext.Provider>
   );
