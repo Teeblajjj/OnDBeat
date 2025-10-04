@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { X, Music } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import FuturisticVisualizer from './FuturisticVisualizer';
 
 const WelcomeModal = ({ isOpen, onClose }) => {
   const { user } = useAuth();
@@ -9,32 +9,30 @@ const WelcomeModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4 backdrop-blur-sm" onClick={onClose}>
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4 backdrop-blur-md" onClick={onClose}>
       <motion.div
-        initial={{ scale: 0.9, opacity: 0, y: 50 }}
+        initial={{ scale: 0.95, opacity: 0, y: 30 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        exit={{ scale: 0.9, opacity: 0, y: 50 }}
-        transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="bg-neutral-900 border border-neutral-800 rounded-2xl p-8 shadow-lg w-full max-w-md text-center"
+        exit={{ scale: 0.95, opacity: 0, y: 30 }}
+        transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
+        className="bg-neutral-900/70 border border-neutral-800 rounded-2xl p-8 shadow-2xl shadow-green-500/5 w-full max-w-md text-center"
         onClick={(e) => e.stopPropagation()}
       >
-        <motion.div
-          animate={{ rotate: [0, 360], scale: [1, 1.1, 1] }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-          className="mx-auto w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center border-2 border-green-500/30"
-        >
-          <Music size={48} className="text-green-500" />
-        </motion.div>
+        <div className="mx-auto w-28 h-28 flex items-center justify-center mb-4">
+          <FuturisticVisualizer />
+        </div>
         
-        <h2 className="text-3xl font-bold text-white mt-6">Welcome, {user?.displayName || 'Music Lover'}!</h2>
-        <p className="text-neutral-400 mt-2">We're glad to see you. Let's make some noise.</p>
+        <h2 className="text-3xl font-bold text-white mt-6">Welcome to the Beat, {user?.displayName || 'Creator'}!</h2>
+        <p className="text-neutral-400 mt-2 text-base">Your next masterpiece is waiting. Let's create something extraordinary.</p>
         
-        <button
+        <motion.button
           onClick={onClose}
-          className="mt-8 w-full bg-green-600 hover:bg-green-500 text-black font-bold py-3 px-6 rounded-full transition-colors text-lg"
+          whileHover={{ scale: 1.05, boxShadow: '0px 0px 20px rgba(16, 185, 129, 0.5)' }}
+          whileTap={{ scale: 0.95 }}
+          className="mt-8 w-full bg-gradient-to-r from-green-500 to-emerald-500 text-black font-bold py-3 px-6 rounded-full transition-all text-lg shadow-lg"
         >
-          Start Exploring
-        </button>
+          Start Creating
+        </motion.button>
       </motion.div>
     </div>
   );

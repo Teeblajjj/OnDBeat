@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { db } from '../lib/firebase';
-import { collection, query, getDocs, orderBy } from 'firebase/firestore';
-import { X, ChevronUp, Mic2, Video, Copy, Signal, Radio, Users } from 'lucide-react';
+import { collection, query, getDocs } from 'firebase/firestore';
+import { X, ChevronUp, Radio, Video, Users, Copy, Signal } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useModal } from '../context/ModalContext';
+import BeatModalShimmer from './BeatModalShimmer'; // Import the shimmer component
 
 const UsageTerms = ({ terms }) => {
     const formatNumber = (num) => new Intl.NumberFormat().format(num);
@@ -47,27 +48,42 @@ export default function BeatModal({ isOpen, beat, onClose }) {
     const [licenses, setLicenses] = useState([]);
     const [selectedLicense, setSelectedLicense] = useState(null);
     const [isTermsOpen, setIsTermsOpen] = useState(true);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchLicenses = async () => {
             if (beat && isOpen) {
-                const licensesQuery = query(collection(db, 'tracks', beat.id, 'licenses'));
-                const licensesSnap = await getDocs(licensesQuery);
-                const licensesData = licensesSnap.docs.map(doc => doc.data());
-                const sortedLicenses = licensesData.sort((a, b) => {
-                    if (a.price === null) return 1;
-                    if (b.price === null) return -1;
-                    return a.price - b.price;
-                });
-                setLicenses(sortedLicenses);
-                setSelectedLicense(sortedLicenses.find(l => l.featured) || sortedLicenses[0] || null);
+                setLoading(true);
+                try {
+                    const licensesQuery = query(collection(db, 'tracks', beat.id, 'licenses'));
+                    const licensesSnap = await getDocs(licensesQuery);
+                    const licensesData = licensesSnap.docs.map(doc => doc.data());
+                    const sortedLicenses = licensesData.sort((a, b) => {
+                        if (a.price === null) return 1;
+                        if (b.price === null) return -1;
+                        return a.price - b.price;
+                    });
+                    setLicenses(sortedLicenses);
+                    setSelectedLicense(sortedLicenses.find(l => l.featured) || sortedLicenses[0] || null);
+                } catch (error) {
+                    console.error("Failed to fetch licenses:", error);
+                } finally {
+                    // Add a small delay to prevent flash of shimmer
+                    setTimeout(() => setLoading(false), 500); 
+                }
             }
         };
         fetchLicenses();
     }, [beat, isOpen]);
 
-    if (!isOpen || !beat) return null;
+    if (!isOpen) return null;
     
+    if (loading) {
+        return <BeatModalShimmer />;
+    }
+    
+    if (!beat) return null;
+
     const handleNegotiate = () => {
         onClose(); // Close the current modal
         openModal('negotiation', { beat });
@@ -82,12 +98,11 @@ export default function BeatModal({ isOpen, beat, onClose }) {
                 className="bg-neutral-900 border border-neutral-800 rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col" 
                 onClick={e => e.stopPropagation()}
             >
-                <div className="flex justify-between items-center p-6 border-b border-neutral-800 flex-shrink-0">
+                 <div className="flex justify-between items-center p-6 border-b border-neutral-800 flex-shrink-0">
                     <h2 className="text-2xl font-bold text-white">Choose Your License</h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors"><X size={28} /></button>
                 </div>
-
-                <div className="flex-grow p-6 space-y-6 overflow-y-auto">
+                 <div className="flex-grow p-6 space-y-6 overflow-y-auto">
                     <div className="flex justify-between items-center">
                         <h3 className="text-lg font-bold text-white">Select a License</h3>
                         {selectedLicense?.name.toLowerCase() === 'exclusive rights' ? (

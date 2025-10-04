@@ -1,14 +1,29 @@
 import Head from "next/head";
 import Link from "next/link";
-import { Compass, Star, Users, UserCircle } from "lucide-react";
+import { Compass, Star, Users } from "lucide-react";
 import Layout from "../components/Layout";
 import { FeedItem } from "../components/FeedItem";
 import { db } from "../lib/firebase.js";
 import { collection, getDocs, query, orderBy, limit, where, doc, getDoc } from "firebase/firestore";
+import { useState, useEffect } from "react";
+import TopProducersShimmer from "../components/TopProducersShimmer";
+import DiscoverMoreShimmer from "../components/DiscoverMoreShimmer";
 
-export default function Home({ tracks, topProducers }) {
+export default function Home({ initialTracks, initialTopProducers }) {
+  const [tracks, setTracks] = useState(initialTracks);
+  const [topProducers, setTopProducers] = useState(initialTopProducers);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate a loading delay
+    setTimeout(() => setLoading(false), 500);
+  }, []);
+
   // --- Components ---
   const TopProducersList = ({ producers }) => {
+    if (loading) {
+      return <TopProducersShimmer />;
+    }
     const formatFollowers = (num) => {
       if (num >= 1000) {
         return (num / 1000).toFixed(1) + 'k';
@@ -26,7 +41,7 @@ export default function Home({ tracks, topProducers }) {
                 {p.photoURL ? (
                   <img src={p.photoURL} alt={p.displayName} className="w-11 h-11 rounded-full object-cover" />
                 ) : (
-                  <UserCircle size={44} className="text-neutral-500" />
+                  <div className="w-11 h-11 rounded-full bg-neutral-700" />
                 )}
                   <div>
                       <div className="flex items-center gap-2">
@@ -40,6 +55,22 @@ export default function Home({ tracks, topProducers }) {
               </button>
             </div>
           ))}
+        </div>
+      </section>
+    );
+  };
+  
+  const DiscoverMore = () => {
+    if (loading) {
+      return <DiscoverMoreShimmer />;
+    }
+    return (
+      <section className="bg-[#181818] border border-neutral-800 rounded-2xl p-6 shadow-lg">
+        <h3 className="text-xl font-bold text-white mb-4">Discover More</h3>
+        <div className="flex flex-col gap-3">
+          <Link href="#" className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/60 transition-colors"><Compass size={20} className="text-green-400"/><span>Browse Genres</span></Link>
+          <Link href="#" className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/60 transition-colors"><Star size={20} className="text-yellow-400"/><span>Top Charts</span></Link>
+          <Link href="#" className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/60 transition-colors"><Users size={20} className="text-blue-400"/><span>Community Picks</span></Link>
         </div>
       </section>
     );
@@ -61,14 +92,7 @@ export default function Home({ tracks, topProducers }) {
           {/* Sidebar Content */}
           <div className="space-y-8">
             <TopProducersList producers={topProducers} />
-            <section className="bg-[#181818] border border-neutral-800 rounded-2xl p-6 shadow-lg">
-              <h3 className="text-xl font-bold text-white mb-4">Discover More</h3>
-              <div className="flex flex-col gap-3">
-                <Link href="#" className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/60 transition-colors"><Compass size={20} className="text-green-400"/><span>Browse Genres</span></Link>
-                <Link href="#" className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/60 transition-colors"><Star size={20} className="text-yellow-400"/><span>Top Charts</span></Link>
-                <Link href="#" className="flex items-center gap-3 p-3 rounded-lg hover:bg-neutral-800/60 transition-colors"><Users size={20} className="text-blue-400"/><span>Community Picks</span></Link>
-              </div>
-            </section>
+            <DiscoverMore />
           </div>
         </div>
       </div>
@@ -128,8 +152,8 @@ export async function getServerSideProps() {
 
   return {
     props: {
-      tracks: JSON.parse(JSON.stringify(tracks)),
-      topProducers: JSON.parse(JSON.stringify(topProducers)),
+      initialTracks: JSON.parse(JSON.stringify(tracks)),
+      initialTopProducers: JSON.parse(JSON.stringify(topProducers)),
     },
   };
 }

@@ -11,12 +11,14 @@ import { AnimatedHeart } from "./AnimatedHeart";
 import { AnimatePresence } from "framer-motion";
 import { useModal } from "../context/ModalContext";
 import { TbShoppingCartPlus } from "react-icons/tb";
+import FeedItemShimmer from "./FeedItemShimmer"; // Import the shimmer component
 
 export const FeedItem = ({ item, collectionName }) => {
     const { playTrack, currentTrack, isPlaying } = usePlayer();
     const { user } = useAuth();
     const { openModal } = useModal();
 
+    const [loading, setLoading] = useState(true);
     const [timeAgo, setTimeAgo] = useState('');
     const [releaseDate, setReleaseDate] = useState('...');
     const [isLiked, setIsLiked] = useState(false);
@@ -25,15 +27,23 @@ export const FeedItem = ({ item, collectionName }) => {
     const [animatedHearts, setAnimatedHearts] = useState([]);
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const producerName = item.producer?.displayName || "Unknown Artist";
-    const producerHandle = item.producer?.displayName?.toLowerCase().replace(/\s/g, '') || "unknown";
-    const producerAvatar = item.producer?.photoURL;
+    useEffect(() => {
+        if (item) {
+            // Simulate a loading delay
+            setTimeout(() => setLoading(false), 500);
+        }
+    }, [item]);
+
+    const producerName = item?.producer?.displayName || "Unknown Artist";
+    const producerHandle = item?.producer?.displayName?.toLowerCase().replace(/\s/g, '') || "unknown";
+    const producerAvatar = item?.producer?.photoURL;
     
-    const description = item.description || '';
+    const description = item?.description || '';
     const isLongDescription = description.length > 180;
     const truncatedDescription = isLongDescription ? `${description.substring(0, 180)}...` : description;
 
     useEffect(() => {
+        if (!item) return;
         const likes = item.likes;
         const isLegacyLikes = typeof likes === 'number';
 
@@ -47,9 +57,10 @@ export const FeedItem = ({ item, collectionName }) => {
             setLikeCount(0);
             setIsLiked(false);
         }
-    }, [item.likes, user]);
+    }, [item?.likes, user]);
 
     useEffect(() => {
+        if (!item) return;
         const createdAtDate = item.createdAt ? new Date(item.createdAt) : null;
         if (!createdAtDate) {
             setTimeAgo('some time');
@@ -79,7 +90,7 @@ export const FeedItem = ({ item, collectionName }) => {
             day: 'numeric', 
             year: 'numeric' 
         }));
-    }, [item.createdAt]);
+    }, [item?.createdAt]);
 
     const handleAnimationComplete = (id) => {
         setAnimatedHearts((prev) => prev.filter((heart) => heart.id !== id));
@@ -114,6 +125,10 @@ export const FeedItem = ({ item, collectionName }) => {
             setLikeCount(prev => newIsLiked ? prev - 1 : prev + 1);
         }
     };
+
+    if (loading || !item) {
+        return <FeedItemShimmer />;
+    }
 
     return (
         <div className="bg-[#181818] border border-neutral-800 rounded-lg p-4 sm:p-6 shadow-lg transform hover:scale-[1.01] transition-transform duration-300">
