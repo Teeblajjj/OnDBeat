@@ -2,14 +2,15 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { X, User, Lock, Mail } from 'lucide-react';
 
-const AuthModal = () => {
-  const { isAuthModalOpen, closeAuthModal, authMode, openAuthModal, login, signUp } = useAuth();
+const AuthModal = ({ isOpen, onClose, initialMode = 'signin' }) => {
+  const { login, signUp } = useAuth();
+  const [mode, setMode] = useState(initialMode);
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
 
-  if (!isAuthModalOpen) return null;
+  if (!isOpen) return null;
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -22,25 +23,24 @@ const AuthModal = () => {
   };
 
   const toggleMode = () => {
-    // Clear fields when switching between sign-in and sign-up
     setEmail('');
     setPassword('');
     setDisplayName('');
-    openAuthModal(authMode === 'signin' ? 'signup' : 'signin');
+    setMode(prev => prev === 'signin' ? 'signup' : 'signin');
   };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center">
       <div className="bg-neutral-900 rounded-lg shadow-xl p-8 max-w-sm w-full relative">
-        <button onClick={closeAuthModal} className="absolute top-3 right-3 text-neutral-500 hover:text-white">
+        <button onClick={onClose} className="absolute top-3 right-3 text-neutral-500 hover:text-white">
           <X size={24} />
         </button>
 
         <h2 className="text-2xl font-bold text-center text-white mb-6">{
-          authMode === 'signin' ? 'Sign In' : 'Create an Account'
+          mode === 'signin' ? 'Sign In' : 'Create an Account'
         }</h2>
 
-        {authMode === 'signin' ? (
+        {mode === 'signin' ? (
           <form onSubmit={handleLogin}>
             <div className="mb-4 relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" size={20} />
@@ -98,9 +98,9 @@ const AuthModal = () => {
         )}
 
         <p className="text-center text-neutral-500 mt-6">
-          {authMode === 'signin' ? "Don't have an account?" : "Already have an account?"}
+          {mode === 'signin' ? "Don't have an account?" : "Already have an account?"}
           <button onClick={toggleMode} className="text-green-500 font-bold ml-2 hover:underline">
-            {authMode === 'signin' ? 'Sign Up' : 'Sign In'}
+            {mode === 'signin' ? 'Sign Up' : 'Sign In'}
           </button>
         </p>
       </div>

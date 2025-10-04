@@ -117,15 +117,6 @@ const Sidebar = ({ mobileMenuOpen, onToggleMobileMenu }) => {
                 </Link>
             </div>
 
-            {user && user.isCreator && viewAsCreator && (
-                 <Link href="/creator/upload" legacyBehavior>
-                    <a className="flex items-center justify-center gap-2 mb-4 bg-green-500/10 border border-green-500/30 text-green-300 font-medium py-2.5 px-4 rounded-lg hover:bg-green-500/20 hover:text-green-200 transition-all">
-                        <UploadCloud size={18}/>
-                        <span>Upload</span>
-                    </a>
-                </Link>
-            )}
-
             <nav className="flex flex-col gap-2">
                 <h2 className="px-3 mt-2 mb-1 text-xs font-semibold text-neutral-500 uppercase tracking-wider">Menu</h2>
                 {mainNavLinks.map(link => <NavLink key={link.label} {...link} />)}

@@ -1,14 +1,16 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import ShareModal from '../components/ShareModal';
-import BeatModal from '../components/BeatModal';
-import NegotiationModal from '../components/NegotiationModal';
-import PlaylistModal from '../components/PlaylistModal'; // Import the PlaylistModal
 
-type ModalType = 'share' | 'beat' | 'negotiation' | 'playlist'; // Add 'playlist' modal type
+type ModalType = 'share' | 'beat' | 'negotiation' | 'playlist' | 'upload' | 'auth' | 'welcome';
+
+interface ModalState {
+  type: ModalType | null;
+  props: any;
+}
 
 interface ModalContextType {
-  openModal: (type: ModalType, props: any) => void;
+  modal: ModalState;
+  openModal: (type: ModalType, props?: any) => void;
   closeModal: () => void;
 }
 
@@ -23,38 +25,19 @@ export const useModal = () => {
 };
 
 export const ModalProvider = ({ children }: { children: ReactNode }) => {
-  const [modalType, setModalType] = useState<ModalType | null>(null);
-  const [modalProps, setModalProps] = useState<any>({});
+  const [modal, setModal] = useState<ModalState>({ type: null, props: {} });
 
-  const openModal = (type: ModalType, props: any) => {
-    setModalType(type);
-    setModalProps(props);
+  const openModal = (type: ModalType, props: any = {}) => {
+    setModal({ type, props });
   };
 
   const closeModal = () => {
-    setModalType(null);
-    setModalProps({});
-  };
-
-  const renderModal = () => {
-    switch (modalType) {
-      case 'share':
-        return <ShareModal item={modalProps.item} isVisible={true} onClose={closeModal} />;
-      case 'beat':
-        return <BeatModal beat={modalProps.beat} isOpen={true} onClose={closeModal} />;
-      case 'negotiation':
-        return <NegotiationModal beat={modalProps.beat} isOpen={true} onClose={closeModal} />;
-      case 'playlist':
-        return <PlaylistModal track={modalProps.track} isOpen={true} onClose={closeModal} />;
-      default:
-        return null;
-    }
+    setModal({ type: null, props: {} });
   };
 
   return (
-    <ModalContext.Provider value={{ openModal, closeModal }}>
+    <ModalContext.Provider value={{ modal, openModal, closeModal }}>
       {children}
-      {renderModal()}
     </ModalContext.Provider>
   );
 };

@@ -192,7 +192,7 @@ const BeatDetailPage = ({ track, creator, moreTracks, licenses, comments }) => {
                         <div className="bg-neutral-900/50 p-6 rounded-2xl border border-neutral-800/80">
                             <div className="flex justify-between items-center mb-4">
                                 <h2 className="text-2xl font-bold text-white">Licensing</h2>
-                                {selectedLicense?.name.toLowerCase() === 'exclusive license' ? (
+                                {selectedLicense?.name.toLowerCase() === 'exclusive rights' ? (
                                     <button onClick={handleNegotiate} className="px-6 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-md">Negotiate</button>
                                 ) : (
                                     <div className="flex items-center gap-4">

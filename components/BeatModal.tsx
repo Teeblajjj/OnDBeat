@@ -90,7 +90,7 @@ export default function BeatModal({ isOpen, beat, onClose }) {
                 <div className="flex-grow p-6 space-y-6 overflow-y-auto">
                     <div className="flex justify-between items-center">
                         <h3 className="text-lg font-bold text-white">Select a License</h3>
-                        {selectedLicense?.name.toLowerCase() === 'exclusive license' ? (
+                        {selectedLicense?.name.toLowerCase() === 'exclusive rights' ? (
                             <button onClick={handleNegotiate} className="px-6 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-md">Negotiate</button>
                         ) : (
                             <div className="flex items-center gap-4">

@@ -1,11 +1,11 @@
-import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, User } from 'firebase/auth';
+import { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import { onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, User as FirebaseUser } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { auth, db } from '../lib/firebase';
 import toast from 'react-hot-toast';
+import { useModal } from './ModalContext'; // Import useModal
 
-type AuthMode = 'signin' | 'signup';
-
+// Define the user profile structure
 interface UserProfile {
     uid: string;
     email: string;
@@ -28,26 +28,32 @@ interface UserProfile {
     biography?: string;
 }
 
+// Combine Firebase user with our custom profile
+type AppUser = FirebaseUser & UserProfile;
+
+type AuthMode = 'signin' | 'signup';
+
 interface AuthContextType {
-  user: (User & Partial<UserProfile>) | null;
+  user: AppUser | null;
   isAuthModalOpen: boolean;
   authMode: AuthMode;
   openAuthModal: (mode: AuthMode) => void;
-  closeAuthModal: () => void;
+  closeModal: () => void;
   toggleView: () => void;
   viewAsCreator: boolean;
-  logout: () => Promise<void>;
   login: (email: string, pass: string) => Promise<boolean>;
   signUp: (email: string, pass: string, displayName: string) => Promise<boolean>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<AuthContextType['user']>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [isAuthModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>('signin');
   const [viewAsCreator, setViewAsCreator] = useState(false);
+  const { openModal, closeModal: closeAuthModal } = useModal();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
@@ -58,14 +64,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (userDoc.exists()) {
           const userProfile = userDoc.data() as UserProfile;
           setUser({ ...firebaseUser, ...userProfile });
-          // Set the initial view mode based on whether the user is a creator
           if (userProfile.isCreator) {
             setViewAsCreator(true);
           }
         } else {
-          // This case is for when a user is authenticated with Firebase Auth
-          // but doesn't have a corresponding document in Firestore yet.
-          setUser(firebaseUser); 
+          // Fallback if firestore doc is missing
+          setUser(firebaseUser as AppUser); 
         }
       } else {
         setUser(null);
@@ -76,28 +80,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const openAuthModal = (mode: AuthMode) => {
-    setAuthMode(mode);
-    setAuthModalOpen(true);
-  };
-
-  const closeAuthModal = () => {
-    setAuthModalOpen(false);
+    openModal('auth', { initialMode: mode });
   };
 
   const login = async (email: string, pass: string) => {
     const toastId = toast.loading('Signing in...');
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, pass);
-      const userDocRef = doc(db, 'users', userCredential.user.uid);
-      const userDoc = await getDoc(userDocRef);
-      const displayName = userDoc.exists() ? userDoc.data().displayName : 'User';
-
-      toast.success(`Welcome back, ${displayName}!`, { id: toastId });
+      await signInWithEmailAndPassword(auth, email, pass);
+      toast.success('Logged in successfully!', { id: toastId });
       closeAuthModal();
+      openModal('welcome');
       return true;
     } catch (error) {
       console.error(error);
-      toast.error('Invalid credentials. Please try again.', { id: toastId });
+      toast.error('Could not sign in. Please check your credentials.', { id: toastId });
       return false;
     }
   };
@@ -130,8 +126,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       toast.success(`Welcome, ${displayName}! Your account is ready.`, { id: toastId });
       closeAuthModal();
+      openModal('welcome');
       return true;
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
       const message = error.code === 'auth/email-already-in-use'
         ? 'This email is already in use.'
@@ -147,14 +144,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const toggleView = () => {
-    // Only allow toggling if the user is actually a creator
     if (user && user.isCreator) {
       setViewAsCreator(prev => !prev);
     }
   };
+  
+  const contextUser = user ? { ...user, isCreator: viewAsCreator } : null;
 
   return (
-    <AuthContext.Provider value={{ user, isAuthModalOpen, authMode, openAuthModal, closeAuthModal, toggleView, viewAsCreator, logout, login, signUp }}>
+    <AuthContext.Provider value={{ user: contextUser, isAuthModalOpen, authMode, openAuthModal, closeModal: closeAuthModal, toggleView, viewAsCreator, logout, login, signUp }}>
       {children}
     </AuthContext.Provider>
   );
